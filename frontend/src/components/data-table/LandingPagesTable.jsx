@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
-import { Button } from "antd";
+import { Button, Modal, Divider } from "antd";
+import Button_m from "@mui/material/Button";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
@@ -19,35 +20,20 @@ import LinearProgress from "@mui/material/LinearProgress";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
+import JoditEditor from "jodit-react";
 function createData(id, name, last_modified_date) {
     return {
         id,
         name,
         last_modified_date,
-        actions: {
-            deleteAction: () => {
-                console.log(`Delete button clicked for row ${id}`);
-            },
-            exportAction: () => {
-                console.log(`Export button clicked for row ${id}`);
-            }
-        }
+
     };
 };
 
 
 const rows = [
-    createData(1, "Cupcake", "1-12-2002"),
-    createData(2, "Donut", "12-12-2001"),
-    createData(3, "Eclair", "12-12-2001"),
-    createData(4, "Frozen yoghurt", "12-12-2001"),
-    createData(5, "Gingerbread", "12-12-2001"),
-    createData(6, "Honeycomb", "12-12-2001"),
-    createData(7, "Ice cream sandwich","12-12-2001"),
-    createData(8, "Jelly Bean", "12-12-2001"),
-    createData(9, "KitKat", "12-12-2001"),
-    createData(10, "Lollipop", "12-12-2001"),
-    createData(11, "Marshmallow", "12-12-2001"),
+    createData(1, "Facebook Page", "2024-5-10"),
+
 
 ];
 
@@ -173,7 +159,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
         <Toolbar
             sx={{
                 pl: { sm: 2 },
-                pr: { xs: 1, sm: 1 },
+                pr: { xs: 1, sm: 2 },
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -222,7 +208,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
 
                 <TextField
                     size="small"
-                    style={{ width: 470 }}
+                    style={{}}
                     value={searchTerm}
                     onChange={handleSearchChange}
                     InputProps={{
@@ -247,6 +233,34 @@ export default function EnhancedTable() {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [searchTerm, setSearchTerm] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [inputType, setInputType] = useState("");
+    const [activeButton, setActiveButton] = useState("");
+    const editor = useRef(null);
+    const [setModalOpen, setIsModalOpen1] = useState(false);
+
+
+    const showModal1 = () => {
+        setIsModalOpen1(true);
+    };
+    const Cancel = () => {
+        setIsModalOpen1(false);
+    };
+
+
+    const showModal = () => {
+        setIsModalOpen(true);
+    };
+
+    const handleCancel = () => {
+        setIsModalOpen(false);
+    };
+
+    const handleInputType = (type) => {
+        setInputType(type);
+        setActiveButton(type);
+    };
+
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === "asc";
@@ -363,7 +377,7 @@ export default function EnhancedTable() {
                                                 <>
                                                     <Button
                                                         icon={<EditIcon />}
-                                                        onClick={row.actions.exportAction}
+                                                        onClick={showModal}
                                                         style={{
                                                             fontSize: "16px",
                                                             width: 70,
@@ -374,7 +388,7 @@ export default function EnhancedTable() {
                                                     />
                                                     <Button
                                                         icon={<DeleteRoundedIcon />}
-                                                        onClick={row.actions.deleteAction}
+                                                        onClick={showModal1}
                                                         style={{
                                                             fontSize: "16px",
                                                             width: 70,
@@ -417,6 +431,130 @@ export default function EnhancedTable() {
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
+                <Modal
+                    title="New Landing Page"
+                    width={800}
+                    centered
+                    open={isModalOpen}
+                    onCancel={handleCancel}
+                    cancelButtonProps={{
+                        style: {
+                            backgroundColor: "#bebebe",
+                            color: "#FFF",
+                            fontSize: "13px",
+                            height: "36px"
+                        }
+                    }}
+                    style={{ width: "600px", height: "400px" }}
+                    cancelText="CANCEL"
+
+                    footer={(_, { CancelBtn }) => (
+                        <>
+                            <CancelBtn
+
+                            />
+                            <Button
+
+                                style={{
+                                    backgroundColor: "rgba(67,190,126,255)",
+                                    color: "#FFF",
+                                    fontSize: "13px",
+                                    height: "36px"
+                                }}
+                            >SAVE</Button>
+
+                        </>
+                    )}
+                >
+                    <Divider style={{ borderTopColor: "#d5d5d5" }} />
+                    <Box
+                        component="form"
+                        sx={{
+                            "& .MuiTextField-root": { m: 1, width: "98%" },
+                        }}
+                        noValidate
+                        autoComplete="off"
+                    >
+
+                        <TextField
+                            label="Name"
+                            variant="outlined"
+                        />
+                        <div style={{ display: "flex", gap: 2 }}>
+                            <TextField
+                                label="URL"
+                                variant="outlined"
+                                sx={{ flex: 1 }}
+                            />
+                            <TextField
+                                label="Redirect URL"
+                                variant="outlined"
+                                sx={{ flex: 1 }}
+                            />
+                        </div>
+                        <div style={{ marginTop: "40px", marginLeft: "7px", gap: 12 }}>
+                            <Button_m variant="text" size="large"
+                                style={{
+                                    borderRadius: activeButton === "html" ? "0px" : "4px",
+                                    borderBottom: activeButton === "html" ? "solid" : "none",
+                                }}
+                                onClick={() => handleInputType("html")}
+                            >HTML</Button_m>
+                        </div>
+                        {inputType === "html" && (
+                            <div style={{ marginTop: "20px" }}>
+                                <JoditEditor
+                                    ref={editor}
+                                    config={{
+                                        height: 400,
+                                        toolbarAdaptive: false,
+                                        toolbarButtonSize: "small",
+                                        toolbar: true,
+                                        showCharsCounter: false,
+                                        buttons: "bold,italic,underline,strikethrough,|,align,ul,ol,|,font,fontsize,brush,paragraph",
+                                        placeholder: "",
+                                    }}
+                                />
+                            </div>
+
+                        )}
+
+                    </Box>
+                </Modal>
+
+                <Modal
+                    title="Delete Item"
+                    centered
+                    open={setModalOpen}
+                    onCancel={Cancel}
+                    cancelButtonProps={{
+                        style: {
+                            backgroundColor: "#ff5252",
+                            color: "#FFF",
+                            fontSize: "13px",
+                            height: "36px",
+                        }
+                    }}
+                    cancelText="CANCEL"
+                    footer={(_, { CancelBtn }) => (
+                        <>
+                            <CancelBtn
+                            />
+                            <Button
+                                style={{
+                                    borderColor: "rgba(67,190,126,255)",
+                                    color: "rgba(67,190,126,255)",
+                                    fontSize: "13px",
+                                    height: "36px",
+                                }}
+                            >OK</Button>
+                        </>
+                    )}
+                >
+                    <Typography>
+                        Are you sure you want to delete this item?
+                    </Typography>
+                </Modal>
             </Paper>
 
         </Box>

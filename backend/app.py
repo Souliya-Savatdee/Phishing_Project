@@ -2,20 +2,25 @@ from flask import Flask
 import os
 from datetime import timedelta
 
-from flask_restx import Api, Resource
+from flask_restx import Api
 from flask_jwt_extended import JWTManager 
 from flask_migrate import Migrate
 from flask_cors import CORS
 from dotenv import load_dotenv
 
 from config import DevConfig
-from api.models import db, Campaign, Base, engine
+from api.models import db, Campaign, Base, engine 
 from api.auth import auth_ns
 from api.users import user_ns
 from api.sending_profile import sending_prolfile_ns
 from api.group import group_ns
 from api.email_template import email_template_ns
 from api.landing_page import landing_page_ns
+from api.landing_page import landing_page_ns
+from api.campaign import campaign_ns
+from api.tracker import tracker_ns
+
+
 
 def create_app(config=None):
     app = Flask(__name__, instance_relative_config=True)
@@ -48,17 +53,20 @@ def create_app(config=None):
     api.add_namespace(group_ns)
     api.add_namespace(email_template_ns)
     api.add_namespace(landing_page_ns)
+    api.add_namespace(campaign_ns)
+    api.add_namespace(tracker_ns)
         
 
     #app shell
     @app.shell_context_processor
     def make_shell_context():
-        print("Executing make_shell_context function...")  # Debugging line
+        print("Executing make_shell_context function...")  
         return{
             "db":db,
             "Campaign":Campaign,
             "Base": Base,
-            "engine":engine
+            "engine":engine,
+
         }
         
         

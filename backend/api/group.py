@@ -1,8 +1,9 @@
+import re
+from datetime import datetime
+
 from flask import request, jsonify, make_response
 from flask_restx import Resource, fields, Namespace
 from flask_jwt_extended import get_jwt, jwt_required
-
-from sqlalchemy import and_
 
 from api.models import Group, db, Target
 from constans.http_status_code import (
@@ -45,19 +46,24 @@ def validate_strip(profile_name, name):
         return make_response(
             jsonify({"msg": f"No {name} provided"}), HTTP_400_BAD_REQUEST
         )
-
+def validate_email(email):
+    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    if re.match(pattern, email):
+        return True
+    else:
+        return False
 
 @group_ns.route("/")
 class GroupManagments(Resource):
     # Create Group
-    @jwt_required()
+    # @jwt_required()
     
     @group_ns.expect(group_model)
     def post(self):
         
-        permission_check = check_admin_permission()
-        if permission_check:
-            return permission_check
+        # permission_check = check_admin_permission()
+        # if permission_check:
+        #     return permission_check
         
         data = request.get_json()
         group_name = data.get("group_name")
@@ -79,10 +85,14 @@ class GroupManagments(Resource):
             if validate_firstname:
                 return validate_firstname
             
-            validate_email = validate_strip(target.get("email"), "email")
-            if validate_email:
-                return validate_email
-            
+            validate_email_strip = validate_strip(target.get("email"), "email")
+            if validate_email_strip:
+                return validate_email_strip
+              
+            if not validate_email(target.get("email")):
+                return make_response(
+                    jsonify({"msg": "Invalid email address"}), HTTP_400_BAD_REQUEST
+            )
             
             
         # Check if group name already exists
@@ -105,18 +115,22 @@ class GroupManagments(Resource):
         return make_response(jsonify({"msg": "Group created"}), HTTP_201_CREATED)
 
     # Get all groups
-    @jwt_required()
+    # @jwt_required()
     
     def get(self):
-        permission_check = check_admin_permission()
-        if permission_check:
-            return permission_check
+        # permission_check = check_admin_permission()
+        # if permission_check:
+        #     return permission_check
         
 
         db_groups = db.session.query(Group).all()
         group_target = []
         for g in db_groups:
             group_name = g.groupname
+            if g.modified_date:
+                modifile_date = g.modified_date.strftime('%Y-%m-%d')
+            else:
+                modifile_date = None 
             data = []
             for i in g.target:
                 data.append(
@@ -129,7 +143,7 @@ class GroupManagments(Resource):
                     }
                 )
             group_target.append(
-                {"group_name": group_name, "group_id": g.id, "target_list": data}
+                {"group_name": group_name, "group_id": g.id, "target_list": data , "modified_date": modifile_date}
             )
         return make_response(jsonify({"group_target": group_target}), HTTP_200_OK)
 
@@ -138,12 +152,12 @@ class GroupManagments(Resource):
 class GroupManagments(Resource):
 
     # Edit Group
-    @jwt_required()
+    # @jwt_required()
     def put(self, id):
         
-        permission_check = check_admin_permission()
-        if permission_check:
-            return permission_check
+        # permission_check = check_admin_permission()
+        # if permission_check:
+        #     return permission_check
         
         data = request.get_json()
         group_id = id                        
@@ -167,10 +181,14 @@ class GroupManagments(Resource):
             if validate_firstname:
                 return validate_firstname
 
-            validate_email = validate_strip(target.get("email"), "email")
-            if validate_email:
-                return validate_email
-        
+            validate_email_strip = validate_strip(target.get("email"), "email")
+            if validate_email_strip:
+                return validate_email_strip
+
+            if not validate_email(target.get("email")):
+                return make_response(
+                    jsonify({"msg": "Invalid email address"}), HTTP_400_BAD_REQUEST
+            )
         
         # Fetch the existing group 
         group = db.session.query(Group).filter_by(id = group_id).first()
@@ -198,9 +216,10 @@ class GroupManagments(Resource):
             t = Target(email=target["email"], firstname=target["firstname"],lastname = lastname)
             group.target.append(t)
             
-            
+        current_datetime = datetime.now()    
         # Update group details
         group.groupname = group_name
+        group.modified_date = current_datetime
         db.session.commit()
 
         return make_response(jsonify({"msg": "Group Updated"}), HTTP_200_OK)
@@ -208,12 +227,12 @@ class GroupManagments(Resource):
 
 
     # Delete Group
-    @jwt_required()
+    # @jwt_required()
     
     def delete(self, id):
-        permission_check = check_admin_permission()
-        if permission_check:
-            return permission_check
+        # permission_check = check_admin_permission()
+        # if permission_check:
+        #     return permission_check
                 
         
         group_id = id          
@@ -236,5 +255,36 @@ class GroupManagments(Resource):
         db.session.query(Group).filter_by(id=group_id).delete()
         db.session.commit()
 
-
         return make_response(jsonify({"msg": "Group deleted"}), HTTP_200_OK)
+    
+
+    # @jwt_required()
+    def get (self, id):
+        # permission_check = check_admin_permission()
+        # if permission_check:
+        #     return permission_check
+        
+        group_id = id
+        db_group = db.session.query(Group).filter_by(id = group_id).first()
+        if db_group is None:
+            return make_response(jsonify({"msg": "Group not found"}), HTTP_400_BAD_REQUEST)
+        
+        group_name = db_group.groupname
+        
+        if db_group.modified_date:
+            modifile_date = db_group.modified_date.strftime('%Y-%m-%d')
+        else:
+            modifile_date = None 
+        data = []
+        for i in db_group.target:
+            data.append(
+                {
+                    "id": i.id,
+                    "email": i.email,
+                    "firstname": i.firstname,
+                    "lastname": i.lastname,
+                    "ip_addr": i.ip_addr,
+                }
+            )
+        return make_response(jsonify({"group_name": group_name, "group_id": db_group.id, "target_list": data, "modified_date": modifile_date}), HTTP_200_OK)
+    

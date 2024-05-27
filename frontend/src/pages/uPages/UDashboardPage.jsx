@@ -25,7 +25,7 @@ export default function UDashboardPage() {
           <Ulinecharts />
           <Udonutcharts/>
         </div>
-        <div style={{ paddingTop: "10px", paddingBottom: "30px" }}>
+        <div style={{ paddingTop: "10px", paddingBottom: "10px" }}>
         <Typography.Title level={1}>Recent Campaigns</Typography.Title>
         </div>
             <div style={{marginTop: "10px"}}>

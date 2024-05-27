@@ -152,7 +152,7 @@ export default function DashboardLayout({ children }) {
               }}
               onClick={handleProfileAllClick}
             >
-              admin@gmail.com
+              User@gmail.com
             </Button>
             </div>
             <div style={{ position: "fixed" ,top:4.5, right: 15 }}>
@@ -172,7 +172,7 @@ export default function DashboardLayout({ children }) {
         </Header>
         <Content
           style={{
-            margin: "24px 16px",
+            margin: "20px 16px",
             padding: 24,
             minHeight: 280,
             background: colorBgContainer,
@@ -183,7 +183,7 @@ export default function DashboardLayout({ children }) {
             style={{
               flex: 1,
               overflowY: "auto",
-              padding: "90px 16px",
+              padding: "40px 16px",
               borderRadius: borderRadiusLG,
             }}
           >

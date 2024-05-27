@@ -20,31 +20,21 @@ import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 
-function createData(id, name, role, last_logged_in) {
+function createData(id, name, role) {
 
     return {
         id,
         name,
         role,
-        last_logged_in,
     };
 };
 
 
 const rows = [
-    createData(1, "Cupcake", 305, "Error"),
-    createData(2, "Donut", 452, "In Progress"),
-    createData(3, "Eclair", 262, "In Progress"),
-    createData(4, "Frozen yoghurt", 232, "Error"),
-    createData(5, "Gingerbread", 356, "In Progress"),
-    createData(6, "Honeycomb", 408, "In Progress"),
-    createData(7, "Ice cream sandwich", 121, "In Progress"),
-    createData(8, "Jelly Bean", 375, "In Progress"),
-    createData(9, "KitKat", 518, "In Progress"),
-    createData(10, "Lollipop", 392, "In Progress"),
-    createData(11, "Marshmallow", 318, "In Progress"),
-    createData(12, "Nougat", 360, "In Progress"),
-    createData(13, "Oreo", 437, "In Progress"),
+    createData(1, "admin@admin.com", "admin"),
+    createData(2, "user@user.com", "user"),
+
+
 ];
 
 function descendingComparator(a, b, orderBy) {
@@ -81,26 +71,19 @@ const headCells = [
         id: "name",
         numeric: false,
         disablePadding: true,
-        label: "Name",
+        label: "Email",
         sortable: false,
     },
     {
         id: "role",
-        numeric: false,
+        numeric: true,
         disablePadding: false,
         label: "Role",
         sortable: true,
     },
     {
-        id: "last_logged_in",
-        numeric: false,
-        disablePadding: false,
-        label: "Last Logged In",
-        sortable: true,
-    },
-    {
         id: "actions",
-        numeric: false,
+        numeric: true,
         disablePadding: false,
         label: "",
         sortable: false,
@@ -175,7 +158,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
         <Toolbar
             sx={{
                 pl: { sm: 2 },
-                pr: { xs: 1, sm: 1 },
+                pr: { xs: 1, sm: 2 },
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -185,7 +168,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
             <Typography
                 sx={{
                     fontSize: "15px",
-                    marginRight: "8px"
+                    marginRight: "8px",
                 }}
                 id="tableTitle"
                 component="div"
@@ -224,7 +207,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
 
                 <TextField
                     size="small"
-                    style={{ width: 470 }}
+                    style={{}}
                     value={searchTerm}
                     onChange={handleSearchChange}
                     InputProps={{
@@ -250,6 +233,16 @@ export default function EnhancedTable() {
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [searchTerm, setSearchTerm] = useState("");
     const [isModalOpen, setisModalOpen] = useState(false);
+    const [setModalOpen, setIsModalOpen1] = useState(false);
+
+
+    const showModal1 = () => {
+        setIsModalOpen1(true);
+    };
+    const Cancel = () => {
+        setIsModalOpen1(false);
+    };
+
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === "asc";
@@ -364,6 +357,7 @@ export default function EnhancedTable() {
                                         <TableCell padding="checkbox">
 
                                         </TableCell>
+                                        
                                         <TableCell
                                             component="th"
                                             id={labelId}
@@ -372,15 +366,13 @@ export default function EnhancedTable() {
                                         >
                                             {row.name}
                                         </TableCell>
+
                                         <TableCell
-                                            align="left"
+                                            align="right"
                                         >
                                             {row.role}
                                         </TableCell>
-                                        <TableCell align="left">
 
-                                            {row.last_logged_in}
-                                        </TableCell>
                                         <TableCell align="right">
                                             {row.name && (
                                                 <>
@@ -397,7 +389,9 @@ export default function EnhancedTable() {
                                                     />
                                                     <Button
                                                         icon={<DeleteRoundedIcon />}
+                                                        onClick={showModal1}
                                                         style={{
+                                                            
                                                             fontSize: "16px",
                                                             width: 70,
                                                             height: 40,
@@ -458,7 +452,7 @@ export default function EnhancedTable() {
 
                     footer={(_, { CancelBtn }) => (
                         <>
-                            <CancelBtn/>
+                            <CancelBtn />
                             <Button
 
                                 style={{
@@ -471,43 +465,76 @@ export default function EnhancedTable() {
                         </>
                     )}
                 >
-                <Divider style={{borderTopColor: "#d5d5d5"}}/>
-                <Box
-          component="form"
-          sx={{
-            "& .MuiTextField-root": { m: 1, width: "100%" },
-          }}
-          noValidate
-          autoComplete="off"
-        >
-            <div>
-              <TextField
-                label="Username"
-                variant="outlined"
-              />
-              <TextField
-              label="Old Password"
-              variant="outlined"
-              type="password"
-              autoComplete="current-password"
-            />
-            <TextField
-              label="New Password"
-              variant="outlined"
-              type="password"
-              autoComplete="current-password"
-            />
-            <TextField
-              label="Confirm Password"
-              variant="outlined"
-              type="password"
-              autoComplete="current-password"
-            />
-            </div>
+                    <Divider style={{ borderTopColor: "#d5d5d5" }} />
+                    <Box
+                        component="form"
+                        sx={{
+                            "& .MuiTextField-root": { m: 1, width: "100%" },
+                        }}
+                        noValidate
+                        autoComplete="off"
+                    >
+                        <div>
+                            <TextField
+                                label="Username"
+                                variant="outlined"
+                            />
+                            <TextField
+                                label="Old Password"
+                                variant="outlined"
+                                type="password"
+                                autoComplete="current-password"
+                            />
+                            <TextField
+                                label="New Password"
+                                variant="outlined"
+                                type="password"
+                                autoComplete="current-password"
+                            />
+                            <TextField
+                                label="Confirm Password"
+                                variant="outlined"
+                                type="password"
+                                autoComplete="current-password"
+                            />
+                        </div>
 
 
 
-        </Box>
+                    </Box>
+                </Modal>
+                <Modal
+                    title="Delete Item"
+                    centered
+                    open={setModalOpen}
+                    onCancel={Cancel}
+                    cancelButtonProps={{
+                        style: {
+                            backgroundColor: "#ff5252",
+                            color: "#FFF",
+                            fontSize: "13px",
+                            height: "36px",
+                        }
+                    }}
+                    cancelText="CANCEL"
+                    footer={(_, { CancelBtn }) => (
+                        <>
+                            <CancelBtn
+                            />
+                            <Button
+                                style={{
+                                    borderColor: "rgba(67,190,126,255)",
+                                    color: "rgba(67,190,126,255)",
+                                    fontSize: "13px",
+                                    height: "36px",
+                                }}
+                            >OK</Button>
+                        </>
+                    )}
+                >
+                    <Typography>
+                        Are you sure you want to delete this item?
+                    </Typography>
                 </Modal>
             </Paper>
 

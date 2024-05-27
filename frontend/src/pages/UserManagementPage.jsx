@@ -60,7 +60,7 @@ export default function UserManagementPage() {
 
         </Card>
         <Modal
-          title="New Sending Profile"
+          title="New User"
           centered
           open={isModalOpen}
           onCancel={handleCancel}

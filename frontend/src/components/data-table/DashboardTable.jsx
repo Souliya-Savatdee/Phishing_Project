@@ -5,7 +5,7 @@ import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
-import { Button } from "antd";
+import { Button,Modal } from "antd";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
@@ -24,6 +24,8 @@ import { visuallyHidden } from "@mui/utils";
 import LinearProgress from "@mui/material/LinearProgress";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
+
+
 function createData(id, name, created_date, email, drafts, cursor, alert) {
   return {
     id,
@@ -63,19 +65,9 @@ function getColorForRow(row, columnId) {
 }
 
 const rows = [
-  createData(1, "Cupcake", 305, 3.7, 67, 4.3,2),
-  createData(2, "Donut", 452, 25.0, 51, 4.9,2),
-  createData(3, "Eclair", 262, 16.0, 24, 6.0),
-  createData(4, "Frozen yoghurt", 159, 6.0, 24, 4.0),
-  createData(5, "Gingerbread", 356, 16.0, 49, 3.9),
-  createData(6, "Honeycomb", 408, 3.2, 87, 6.5),
-  createData(7, "Ice cream sandwich", 237, 9.0, 37, 4.3),
-  createData(8, "Jelly Bean", 375, 0.0, 94, 0.0),
-  createData(9, "KitKat", 518, 26.0, 65, 7.0),
-  createData(10, "Lollipop", 392, 0.2, 98, 0.0),
-  createData(11, "Marshmallow", 318, 0, 81, 2.0),
-  createData(12, "Nougat", 360, 19.0, 9, 37.0),
-  createData(13, "Oreo", 437, 18.0, 63, 4.0),
+  createData(1, "Graphic Branch", "2024-5-10", 10, 8, 5,""),
+  createData(2, "Sales Branch", "2024-5-10", 25, 4, 2.,2),
+
 ];
 
 function descendingComparator(a, b, orderBy) {
@@ -228,7 +220,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
     <Toolbar
       sx={{
         pl: { sm: 2 },
-        pr: { xs: 1, sm: 1 },
+        pr: { xs: 1, sm: 2 },
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between", 
@@ -277,7 +269,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
       
         <TextField
         size="small" 
-        style = {{width: 470}}
+        style = {{}}
         value={searchTerm}
         onChange={handleSearchChange}
         InputProps={{
@@ -302,6 +294,15 @@ export default function EnhancedTable() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const showModal = () => {
+      setIsModalOpen(true);
+    };
+  
+    const handleCancel = () => {
+      setIsModalOpen(false);
+    };
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -444,7 +445,7 @@ export default function EnhancedTable() {
                           />
                           <Button
                             icon={<DeleteRoundedIcon />}
-                            onClick={row.actions.deleteAction}
+                            onClick={showModal}
                             style={{
                               fontSize: "16px",
                               width: 70,
@@ -486,6 +487,39 @@ export default function EnhancedTable() {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
+    <Modal
+    title="Delete Item"
+    centered
+    open={isModalOpen}
+    onCancel={handleCancel}
+    cancelButtonProps={{
+      style: {
+        backgroundColor: "#ff5252",
+        color: "#FFF",
+        fontSize: "13px",
+        height: "36px",
+      }
+    }}
+    cancelText="CANCEL"
+    footer={(_, { CancelBtn }) => (
+      <>
+        <CancelBtn
+        />
+        <Button
+          style={{
+            borderColor: "rgba(67,190,126,255)",
+            color: "rgba(67,190,126,255)",
+            fontSize: "13px",
+            height: "36px",
+          }}
+        >OK</Button>
+      </>
+    )}
+  >
+    <Typography>
+      Are you sure you want to delete this item?
+    </Typography>
+  </Modal>
       </Paper>
 
     </Box>

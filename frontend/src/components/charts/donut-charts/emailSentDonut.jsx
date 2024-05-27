@@ -29,7 +29,7 @@ const emailSentDonut = ({ emailsent }) => {
   const series = [data.emailsent, data.Blank];
 
   return (
-    <div style={{ padding: "20px"}}>
+    <div style={{ padding: "20px 20px 0 20px"}}>
       <p style={{ margin: 0 , textAlign: "center"}}>Email Sent</p>
       <Chart options={options} series={series} type="donut" width={200} />
     </div>

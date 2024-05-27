@@ -228,7 +228,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
     <Toolbar
       sx={{
         pl: { sm: 2 },
-        pr: { xs: 1, sm: 1 },
+        pr: { xs: 1, sm: 2 },
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between", 
@@ -277,7 +277,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
       
         <TextField
         size="small" 
-        style = {{width: 470}}
+        style = {{}}
         value={searchTerm}
         onChange={handleSearchChange}
         InputProps={{

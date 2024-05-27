@@ -38,19 +38,19 @@ function createData(id, first_name, last_name, email) {
 
 
 const rows = [
-    createData(1, "Cupcake", 305, "Error"),
-    createData(2, "Donut", 452, "In Progress"),
-    createData(3, "Eclair", 262, "In Progress"),
-    createData(4, "Frozen yoghurt",232, "Error"),
-    createData(5, "Gingerbread", 356, "In Progress"),
-    createData(6, "Honeycomb", 408, "In Progress"),
-    createData(7, "Ice cream sandwich",121, "In Progress"),
-    createData(8, "Jelly Bean", 375, "In Progress"),
-    createData(9, "KitKat", 518, "In Progress"),
-    createData(10, "Lollipop", 392, "In Progress"),
-    createData(11, "Marshmallow", 318, "In Progress"),
-    createData(12, "Nougat", 360, "In Progress"),
-    createData(13, "Oreo", 437, "In Progress"),
+    // createData(1, "Cupcake", 305, "Error"),
+    // createData(2, "Donut", 452, "In Progress"),
+    // createData(3, "Eclair", 262, "In Progress"),
+    // createData(4, "Frozen yoghurt",232, "Error"),
+    // createData(5, "Gingerbread", 356, "In Progress"),
+    // createData(6, "Honeycomb", 408, "In Progress"),
+    // createData(7, "Ice cream sandwich",121, "In Progress"),
+    // createData(8, "Jelly Bean", 375, "In Progress"),
+    // createData(9, "KitKat", 518, "In Progress"),
+    // createData(10, "Lollipop", 392, "In Progress"),
+    // createData(11, "Marshmallow", 318, "In Progress"),
+    // createData(12, "Nougat", 360, "In Progress"),
+    // createData(13, "Oreo", 437, "In Progress"),
 ];
 
 function descendingComparator(a, b, orderBy) {
@@ -182,7 +182,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
         <Toolbar
             sx={{
                 pl: { sm: 2 },
-                pr: { xs: 1, sm: 1 },
+                pr: { xs: 1, sm: 2 },
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -373,7 +373,7 @@ export default function EnhancedTable() {
                                         <TableCell align="right">
                                             {row.first_name && (
                                                 <>
-                                                    <Button
+                                                    {/* <Button
                                                         icon={<EditIcon />}
                                                         onClick={row.actions.exportAction}
                                                         style={{
@@ -383,7 +383,7 @@ export default function EnhancedTable() {
                                                             backgroundColor: "#43bf7d",
                                                             color: "#FFF",
                                                         }}
-                                                    />
+                                                    /> */}
                                                     <Button
                                                         icon={<DeleteRoundedIcon />}
                                                         onClick={row.actions.deleteAction}

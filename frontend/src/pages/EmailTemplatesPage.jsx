@@ -115,7 +115,7 @@ export default function EmailTemplatesPage() {
                   variant="outlined"
                 />
               </div>
-              <div style={{ marginTop: "40px", marginLeft: "7px", gap: 12 }}>
+              <div style={{ marginTop: "10px", marginLeft: "7px", gap: 12 }}>
                 <Button_m variant="text" size="large"
                   style={{
                     borderRadius: activeButton === "text" ? "0px" : "4px",
@@ -138,8 +138,8 @@ export default function EmailTemplatesPage() {
                   }}
                   label="Plaintext"
                   multiline={true}
-                  rows="15"
-                  rowsMax="20"
+                  rows="10"
+                  rowsMax="25"
                   variant="outlined"
                   fullWidth={true}
                 />
@@ -149,7 +149,7 @@ export default function EmailTemplatesPage() {
                   <JoditEditor
                     ref={editor}
                     config={{
-                      height: 400,
+                      height: 300,
                       toolbarAdaptive: false,
                       toolbarButtonSize: "small",
                       toolbar: true,

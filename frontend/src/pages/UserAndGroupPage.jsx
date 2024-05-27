@@ -19,31 +19,31 @@ export default function UserAndGroupPage() {
     setIsModalOpen(false);
   };
 
-  const props = {
-    action: "https://run.mocky.io/v3/435e224c-44fb-4773-9faf-380c5e6a2188",
-    onChange({ file, fileList }) {
-      if (file.status !== "uploading") {
-        console.log(file, fileList);
-        if (file.type !== "text/csv") {
-          message.error("file does not support, please upload .csv file only");
-          return false;
-        }
-      }
-      return true;
-    },
-    showUploadList: {
-      showDownloadIcon: true,
-      downloadIcon: "Download",
-      showRemoveIcon: true,
-    },
-    beforeUpload(file) {
-      if (file.type !== "text/csv") {
-        message.error("file does not support, please upload .csv file only");
-        return false;
-      }
-      return true;
-    },
-  };
+  // const props = {
+  //   action: "https://run.mocky.io/v3/435e224c-44fb-4773-9faf-380c5e6a2188",
+  //   onChange({ file, fileList }) {
+  //     if (file.status !== "uploading") {
+  //       console.log(file, fileList);
+  //       if (file.type !== "text/csv") {
+  //         message.error("file does not support, please upload .csv file only");
+  //         return false;
+  //       }
+  //     }
+  //     return true;
+  //   },
+  //   showUploadList: {
+  //     showDownloadIcon: true,
+  //     downloadIcon: "Download",
+  //     showRemoveIcon: true,
+  //   },
+  //   beforeUpload(file) {
+  //     if (file.type !== "text/csv") {
+  //       message.error("file does not support, please upload .csv file only");
+  //       return false;
+  //     }
+  //     return true;
+  //   },
+  // };
 
   return (
     <DashboardLayout>
@@ -160,7 +160,7 @@ export default function UserAndGroupPage() {
                 }}
               >Add Item</Button>
 
-              <Upload {...props} >
+              {/* <Upload {...props} >
                 <Button
                   style={{
                     fontSize: "14px",
@@ -170,7 +170,7 @@ export default function UserAndGroupPage() {
                     color: "#FFF",
                   }}
                 >Import CSV</Button>
-              </Upload>
+              </Upload> */}
 
             </div>
             <div style={{ marginTop: "10px" }}>

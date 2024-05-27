@@ -1,14 +1,16 @@
 # coding: utf-8
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table, Text, text, create_engine
-from sqlalchemy.orm import relationship
+import os
+from sqlite3 import IntegrityError
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Table, Text, create_engine 
+from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.declarative import declarative_base
 from flask_sqlalchemy import SQLAlchemy
-engine = create_engine('postgresql://postgres:password@localhost/Phishing_Project', echo=True)
+engine = create_engine(os.environ.get('DATABASE_URI'), echo=True)
 
 db = SQLAlchemy()
 
-Base = declarative_base()                           #!!!
+Base = declarative_base()                         
 metadata = Base.metadata
 
 #Create database
@@ -24,10 +26,11 @@ class Campaign(Base):
     completed_date = Column(DateTime)
     launch_date = Column(DateTime, nullable=False)
     send_data = Column(DateTime, nullable=False)
-    group_id = Column(Integer, nullable=False)                      #not like in the ER
-    page_id = Column(Integer)                                       #not like in the ER
-    temp_id = Column(Integer)                                       #not like in the ER
-    smtp_id = Column(Integer, nullable=False)                       #not like in the ER
+    user_id = Column(UUID, nullable=False)
+    group_id = Column(Integer, nullable=False)                      
+    page_id = Column(Integer)                                       
+    temp_id = Column(Integer)                                       
+    smtp_id = Column(Integer, nullable=False)                       
 
 
 class Group(Base):
@@ -36,8 +39,9 @@ class Group(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     groupname = Column(String(100), nullable=False)
     camp_id = Column(Integer)
+    modified_date = Column(DateTime)
     
-    target = relationship('Target', secondary='grouptarget')        #not like in the ER
+    target = relationship('Target', secondary='grouptarget')        
 
 
 class Page(Base):
@@ -45,6 +49,10 @@ class Page(Base):
 
     page_id = Column(Integer, primary_key=True, autoincrement=True)
     path = Column(Text)
+    
+    modified_date = Column(DateTime)
+    
+    
 
 
 class Permission(Base):
@@ -62,6 +70,7 @@ class Result(Base):
     email = Column(String(100), nullable=False)
     status = Column(String(100))
     modified_date = Column(DateTime)
+    cam_id = Column(Integer)
 
 
 class Role(Base):
@@ -70,7 +79,7 @@ class Role(Base):
     role_id = Column(Integer, primary_key=True)
     role_name = Column(String(100), nullable=False)
     role_desc = Column(Text)
-
+    permissions = relationship('Permission', secondary='role_permission', backref='roles')
 
 class Smtp(Base):
     __tablename__ = 'smtp'
@@ -81,7 +90,9 @@ class Smtp(Base):
     username = Column(String(100), nullable=False)
     password = Column(String(100), nullable=False)
     from_address = Column(String(100), nullable=False)
-    ignore_cert_errors = Column(Boolean)                            #not like in the ER
+    # ignore_cert_errors = Column(Boolean)   
+    modified_date = Column(DateTime)
+
 
 
 class Target(Base):
@@ -93,8 +104,10 @@ class Target(Base):
     email = Column(String(100), nullable=False)
     hostname = Column(String(100))
     ip_addr = Column(String(15))
-    sess_id = Column(String(15))                                    #not like in the database and ER
-                                                                    #Dont have recv_data coloum like in ER
+    sess_id = Column(String(15))  
+    status = Column(String(30))  
+    recv_data = Column(Text)
+        
 
 class Template(Base):
     __tablename__ = 'template'
@@ -104,7 +117,9 @@ class Template(Base):
     temp_subject = Column(String(255))
     temp_text = Column(Text)
     temp_html = Column(Text)
-
+    modified_date = Column(DateTime)
+    
+    
 
 t_grouptarget = Table(                                       
     'grouptarget', metadata,
@@ -117,27 +132,77 @@ class User(Base):
     __tablename__ = 'users'
 
     id = Column(UUID, primary_key=True)
-    email = Column(String(100), nullable=False)                  #not like in the database (just name)
+    email = Column(String(100), nullable=False)                  
     password = Column(String(170), nullable=False)
     role_id = Column(ForeignKey('role.role_id'))
+    modified_date = Column(DateTime)
 
-    role = relationship('Role')                                     #not like in the database
-
-
-
-#Don't have Role_permission in ER
-
-    # Add new
-# t_rolepermission = Table(                                          
-#     'grouptarget', metadata,
-#     Column('roleid', ForeignKey('role.role_id')),
-#     Column('permid', ForeignKey('permission.perm_id'))
-# )
+    role = relationship('Role')                                     
 
 
-    # change html to path
-# class Page(Base):
-#     __tablename__ = 'page'
+t_role_permission = Table(                                          
+    'role_permission', metadata,
+    Column('roleid', ForeignKey('role.role_id')),
+    Column('permid', ForeignKey('permission.perm_id'))
+)
 
-#     page_id = Column(Integer, primary_key=True, autoincrement=True)
-#     path = Column(Text)
+# def add_default_data():
+#     Session = sessionmaker(bind=engine)
+#     session = Session()
+
+#     try:
+#         # Define default roles data
+#         roles_to_add = [
+#             {'role_name': 'admin', 'role_desc': 'Administrator'},
+#             {'role_name': 'user', 'role_desc': 'Normal User'}
+#         ]
+#         for role_data in roles_to_add:
+#             role = Role(**role_data)
+#             session.add(role)
+
+#         # Define default permissions data
+#         permission_to_add = [
+#             {'perm_name': 'edit', 'perm_desc': 'Edit data'},
+#             {'perm_name': 'write', 'perm_desc': 'Write data'},
+#             {'perm_name': 'view', 'perm_desc': 'View data'}
+#         ]
+#         for perm_data in permission_to_add:
+#             permission = Permission(**perm_data)
+#             session.add(permission)
+
+#         # Define default user data
+#         user_data = {
+#             'id': 'd00ebeb6-81d2-4ca0-9430-ee8b80aebeca',
+#             'email': 'admin@admin.com',
+#             'password': 'scrypt:32768:8:1$z2trXDIlYeDAH2PT$7435443d88549c23daff9ad6a2ad4cdbb7fe4ad950b094e6b4c0063b8d96a04ca7800b15acf66906503e00eab6bb0ae7e7c5253aae71557e245c852bc292ef7f',
+#             'role_id': 1
+#         }
+#         user = User(**user_data)
+#         session.add(user)
+
+#         # Commit the changes
+#         session.commit()
+
+#         # Assign permissions to roles
+#         role_permission = [
+#             {'roleid': 1, 'permid': 1},
+#             {'roleid': 1, 'permid': 2},
+#             {'roleid': 1, 'permid': 3}
+#         ]
+#         for rp_data in role_permission:
+#             role_id = rp_data['roleid']
+#             perm_id = rp_data['permid']
+#             role = session.query(Role).filter_by(role_id=role_id).first()
+#             permission = session.query(Permission).filter_by(perm_id=perm_id).first()
+#             if role and permission:
+#                 role.permissions.append(permission)
+
+#         # Commit the changes after assigning permissions
+#         session.commit()
+
+#         print("Default data added successfully.")
+#     except IntegrityError as e:
+#         session.rollback()
+#         print(f"Error adding default data: {e}")
+#     finally:
+#         session.close()

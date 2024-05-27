@@ -9,7 +9,7 @@ import {
 import { Layout, Menu, Button, theme } from "antd";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import { NavLink, useLocation } from "react-router-dom";
-import Logo from "@/assets/Logo/Cyberus_hor.png";
+import Logo from "@/assets/Logo/CEIT_hor.png";
 
 const { Header, Sider, Content } = Layout;
 

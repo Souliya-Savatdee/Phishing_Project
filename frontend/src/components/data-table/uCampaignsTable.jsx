@@ -19,7 +19,8 @@ import { visuallyHidden } from "@mui/utils";
 import LinearProgress from "@mui/material/LinearProgress";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { useNavigate } from "react-router-dom";
+
 function createData(id, name, launch_date, status) {
     return {
         id,
@@ -229,7 +230,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
         <Toolbar
             sx={{
                 pl: { sm: 2 },
-                pr: { xs: 1, sm: 1 },
+                pr: { xs: 1, sm: 2 },
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -278,7 +279,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
 
                 <TextField
                     size="small"
-                    style={{ width: 470 }}
+                    style={{}}
                     value={searchTerm}
                     onChange={handleSearchChange}
                     InputProps={{
@@ -303,6 +304,13 @@ export default function EnhancedTable() {
     const [page, setPage] = React.useState(0);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [searchTerm, setSearchTerm] = useState("");
+    const navigate = useNavigate();
+
+    const handleSubmit = (event) => {
+      event.preventDefault();
+
+      navigate("/u/campaigns/id");
+    };
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === "asc";
@@ -424,7 +432,7 @@ export default function EnhancedTable() {
                                                 <>
                                                     <Button
                                                         icon={<GridViewRoundedIcon />}
-                                                        onClick={row.actions.exportAction}
+                                                        onClick={handleSubmit}
                                                         style={{
                                                             fontSize: "16px",
                                                             width: 70,
@@ -433,16 +441,6 @@ export default function EnhancedTable() {
                                                             color: "#FFF",
                                                         }}
                                                     />
-                                                    <Button
-                                                        icon={<ContentCopyIcon />}
-                                                        onClick={row.actions.deleteAction}
-                                                        style={{
-                                                            fontSize: "16px",
-                                                            width: 70,
-                                                            height: 40,
-                                                            backgroundColor: "#43bf7d",
-                                                            color: "#FFF",
-                                                        }} />
                                                 </>
                                             )}
                                         </TableCell>

@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { Button } from "antd";
+import { Button, Modal } from "antd";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -25,47 +25,68 @@ import LinearProgress from "@mui/material/LinearProgress";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
 
-function createData(id, name, created_date, email, drafts, cursor, alert) {
+function createData(id, name, created_date, email, status, ) {
   return {
     id,
     name,
     created_date,
     email,
-    drafts,
-    cursor,
-    alert
+    status,
+
   };
 };
-function getColorForRow(row, columnId) {
-  if (columnId === "email") {
-    return "#43bf7d";
+
+function getButtonForRow(row) {
+  if (row.status === "Error") {
+      return (
+          <div
+              style={{
+                  fontSize: "16px",
+                  width: 60,
+                  height: 40,
+                  backgroundColor: "#e35e5e",
+                  color: "#FFF",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "not-allowed",
+                  borderRadius: "4px",
+                  pointerEvents: "none",
+              }}
+
+          >
+              {row.status}
+          </div>
+      );
+  } else if (row.status === "Success") {
+      return (
+          <div
+              style={{
+                  fontSize: "16px",
+                  width: 100,
+                  height: 40,
+                  backgroundColor: "#43bf7d",
+                  color: "#FFF",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "not-allowed",
+                  borderRadius: "4px",
+                  pointerEvents: "none",
+              }}
+
+          >
+              {row.status}
+          </div>
+      );
   }
-  if (columnId === "drafts") {
-    return "#f6d320";
-  }
-  if (columnId === "cursor") {
-    return "#f8aa23";
-  }
-  if (columnId === "alert") {
-    return "#e35e5e";
-  }
-  return "inherit";
+  return null;
 }
 
 const rows = [
-  createData(1, "Cupcake", 305, 3.7, 67, 4.3,2),
-  createData(2, "Donut", 452, 25.0, 51, 4.9,2),
-  createData(3, "Eclair", 262, 16.0, 24, 6.0),
-  createData(4, "Frozen yoghurt", 159, 6.0, 24, 4.0),
-  createData(5, "Gingerbread", 356, 16.0, 49, 3.9),
-  createData(6, "Honeycomb", 408, 3.2, 87, 6.5),
-  createData(7, "Ice cream sandwich", 237, 9.0, 37, 4.3),
-  createData(8, "Jelly Bean", 375, 0.0, 94, 0.0),
-  createData(9, "KitKat", 518, 26.0, 65, 7.0),
-  createData(10, "Lollipop", 392, 0.2, 98, 0.0),
-  createData(11, "Marshmallow", 318, 0, 81, 2.0),
-  createData(12, "Nougat", 360, 19.0, 9, 37.0),
-  createData(13, "Oreo", 437, 18.0, 63, 4.0),
+  createData(1, "Souksun", "Vunnakhone", "vunnakhone.souk@gmail.com", "Error",),
+  createData(2, "Sonenaly", "Somsuksit", "sonenaly.12@gmail.com", "Success",),
+
 ];
 
 function descendingComparator(a, b, orderBy) {
@@ -103,44 +124,31 @@ const headCells = [
     id: "name",
     numeric: false,
     disablePadding: true,
-    label: "Name",
+    label: "Firstname",
     sortable: false,
   },
   {
-    id: "created_date",
+    id: "lastname",
     numeric: false,
     disablePadding: false,
-    label: "Created Date",
+    label: "Lastname",
     sortable: true,
   },
   {
     id: "email",
     numeric: false,
     disablePadding: false,
-    label: <EmailIcon style={{ fill: "#43bf7d" }} sx={{ fontSize: 18 }} />,
+    label: "Email",
     sortable: true,
   },
   {
-    id: "drafts",
+    id: "status",
     numeric: false,
     disablePadding: false,
-    label: <DraftsIcon style={{ fill: "#f6d320" }} sx={{ fontSize: 18 }} />,
+    label: "Status",
     sortable: true,
   },
-  {
-    id: "cursor",
-    numeric: false,
-    disablePadding: false,
-    label: <AdsClickRoundedIcon style={{ fill: "#f8aa23" }} sx={{ fontSize: 18 }} />,
-    sortable: true,
-  },
-  {
-    id: "alert",
-    numeric: false,
-    disablePadding: false,
-    label: <ErrorRoundedIcon style={{ fill: "#e35e5e" }} sx={{ fontSize: 18 }} />,
-    sortable: true,
-  },
+
   {
     id: "actions",
     numeric: false,
@@ -207,79 +215,79 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
     value = value > 0 ? value : 1;
     onRowsPerPageChange(value);
   };
-  
+
   const handleSearchChange = (event) => {
     const { value } = event.target;
     setSearchTerm(value);
-    onSearch(value); 
+    onSearch(value);
   };
 
   return (
     <Toolbar
       sx={{
         pl: { sm: 2 },
-        pr: { xs: 1, sm: 1 },
+        pr: { xs: 1, sm: 2 },
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between", 
+        justifyContent: "space-between",
       }}
     >
-      
+
       <Typography
         sx={{
-        fontSize: "15px",
-        marginRight: "8px"
+          fontSize: "15px",
+          marginRight: "8px"
         }}
         id="tableTitle"
         component="div"
       >
         Show
       </Typography>
-      <TextField 
-      type="number" 
-      size="small" 
-      style = {{width: 70}}
-      value={rowsPerPage}
-      onChange={handleRowsPerPageChange}
+      <TextField
+        type="number"
+        size="small"
+        style={{ width: 70 }}
+        value={rowsPerPage}
+        onChange={handleRowsPerPageChange}
       />
       <Typography
         sx={{
-        fontSize: "15px",
-        marginLeft: "5px"
+          fontSize: "15px",
+          marginLeft: "5px"
         }}
         id="tableTitle"
         component="div"
       >
         Columns
+      </Typography>
+      <div style={{ display: "flex", alignItems: "center", marginLeft: "auto" }}>
+        <Typography
+          sx={{
+            fontSize: "15px",
+            marginRight: "5px"
+          }}
+          id="tableTitle"
+          component="div"
+        >
+          Search:
         </Typography>
-        <div style={{ display: "flex", alignItems: "center", marginLeft: "auto" }}>
-      <Typography
-        sx={{
-        fontSize: "15px",
-        marginRight: "5px"
-        }}
-        id="tableTitle"
-        component="div"
-      >
-        Search:
-        </Typography>
-      
-      
+
+
         <TextField
-        size="small" 
-        style = {{width: 470}}
-        value={searchTerm}
-        onChange={handleSearchChange}
-        InputProps={{
-          endAdornment: (
-            <SearchIcon style={{ marginRight: "8px", color: "gray" }} />
-          ),
-        }}
+          size="small"
+          style={{}}
+          value={searchTerm}
+          onChange={handleSearchChange}
+          InputProps={{
+            endAdornment: (
+              <SearchIcon style={{ marginRight: "8px", color: "gray" }} />
+            ),
+          }}
         />
 
       </div>
-      
-     
+
+
     </Toolbar>
   );
 }
@@ -292,6 +300,16 @@ export default function EnhancedTable() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [searchTerm, setSearchTerm] = useState("");
+  const [setModalOpen, setIsModalOpen1] = useState(false);
+
+
+  const showModal1 = () => {
+      setIsModalOpen1(true);
+  };
+  const Cancel = () => {
+      setIsModalOpen1(false);
+  };
+
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -402,37 +420,22 @@ export default function EnhancedTable() {
                     </TableCell>
                     <TableCell
                       align="left"
-                      style={{ color: getColorForRow(row, "created_date") }}
                     >
                       {row.created_date}
                     </TableCell>
-                    <TableCell align="left" style={{ color: getColorForRow(row, "email") }}>
+                    <TableCell align="left" >
                       {row.email}
                     </TableCell>
-                    <TableCell align="left" style={{ color: getColorForRow(row, "drafts") }}>
-                      {row.drafts}
-                    </TableCell>
-                    <TableCell align="left" style={{ color: getColorForRow(row, "cursor") }}>
-                      {row.cursor}
-                    </TableCell>
-                    <TableCell align="left" style={{ color: getColorForRow(row, "alert") }}>
-                      {row.alert}
+                    <TableCell align="left" >
+                    {getButtonForRow(row)}
                     </TableCell>
                     <TableCell align="right">
                       {row.name && (
                         <>
-                          <Button
-                            icon={<GridViewRoundedIcon />}
-                            style={{
-                              fontSize: "16px",
-                              width: 70,
-                              height: 40,
-                              backgroundColor: "#43bf7d",
-                              color: "#FFF",
-                            }}
-                          />
+
                           <Button
                             icon={<DeleteRoundedIcon />}
+                            onClick={showModal1}
                             style={{
                               fontSize: "16px",
                               width: 70,
@@ -453,7 +456,8 @@ export default function EnhancedTable() {
                     <LinearProgress style={{ position: "absolute", top: 0, left: 0, right: 0 }} />
                     <Typography align="center" sx={{
                       fontSize: "14px",
-                      color: "#c9c9c9",}}>
+                      color: "#c9c9c9",
+                    }}>
                       This might take a while to complete
                     </Typography>
                   </TableCell>
@@ -474,6 +478,39 @@ export default function EnhancedTable() {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
+        <Modal
+          title="Delete Item"
+          centered
+          open={setModalOpen}
+          onCancel={Cancel}
+          cancelButtonProps={{
+            style: {
+              backgroundColor: "#ff5252",
+              color: "#FFF",
+              fontSize: "13px",
+              height: "36px",
+            }
+          }}
+          cancelText="CANCEL"
+          footer={(_, { CancelBtn }) => (
+            <>
+              <CancelBtn
+              />
+              <Button
+                style={{
+                  borderColor: "rgba(67,190,126,255)",
+                  color: "rgba(67,190,126,255)",
+                  fontSize: "13px",
+                  height: "36px",
+                }}
+              >OK</Button>
+            </>
+          )}
+        >
+          <Typography>
+            Are you sure you want to delete this item?
+          </Typography>
+        </Modal>
       </Paper>
 
     </Box>

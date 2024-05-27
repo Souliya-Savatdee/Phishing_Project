@@ -31,7 +31,7 @@ export default function DashboardPage() {
           <Linecharts />
           <Donutcharts/>
         </div>
-        <div style={{ paddingTop: "30px", paddingBottom: "30px" }}>
+        <div style={{ paddingBottom: "30px" }}>
         <Typography.Title level={1}>Recent Campaigns</Typography.Title>
         </div>
         
