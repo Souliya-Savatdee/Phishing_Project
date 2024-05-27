@@ -140,11 +140,14 @@ class CampaignManagments(Resource):
 
                 email = "admin@admin.com",
                 cam_id = cam_id,
-                
         )
+        
+        db_update_group_cam_id = db.session.query(Group).filter_by(id = group_id).first()
         
         db.session.add(new_campaign)
         db.session.add(new_resualt)
+        db_update_group_cam_id.camp_id = cam_id
+        
         db.session.commit()
         return make_response(
             jsonify({"msg": "Campaign created successfully "}), HTTP_201_CREATED
@@ -178,6 +181,7 @@ class CampaignManagments(Resource):
                 launch_date = None
         data.append(
             {
+                "cam_id" : campaign.cam_id,
                 "cam_name": campaign.cam_name,
                 "launch_date": launch_date,
                 "status": campaign.status
@@ -186,3 +190,18 @@ class CampaignManagments(Resource):
         
         return make_response(jsonify({"campaign":data}), HTTP_200_OK)
             
+            
+            
+@campaign_ns.route("/<int:id>")
+class CampaignManagment(Resource):
+    def delete(self, id):
+        # permission_check = check_admin_permission()
+        # if permission_check:
+        #     return permission_check
+        
+        db_campaign = db.session.query(Campaign).filter_by(cam_id = id).first()
+        db.session.delete(db_campaign)
+        db.session.commit()
+        return make_response(
+            jsonify({"msg": "Campaign deleted successfully "}), HTTP_200_OK
+        )

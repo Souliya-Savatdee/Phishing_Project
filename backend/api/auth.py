@@ -5,7 +5,7 @@ from werkzeug.security import check_password_hash
 from flask_jwt_extended import jwt_required, create_access_token, create_refresh_token, get_jwt, get_jwt_identity
 from constans.http_status_code import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 
-from api.models import User, db
+from api.models import User,Role,Permission, db
 
 #authentication Login and create token for User
 auth_ns = Namespace("auth", description="Authentication operations")
@@ -50,11 +50,14 @@ class LoginResource(Resource):
         if not isPasswordCorrect:
             return make_response(jsonify({"message":"Invalid email/password"}), HTTP_400_BAD_REQUEST)
 
-
-        role = "admin" if db_auth.role_id == 1 else "user"
+        db_role = db.session.query(Role).get(db_auth.role_id)
+        permissions = [perm.perm_name for perm in db_role.permissions]
+        # role = "admin" if db_auth.role_id == 1 else "user"
+        user_id = db_auth.id
+        role = db_role.role_name
         
-        access_token = create_access_token(identity = db_auth.id, additional_claims = {'role': role})
-        refresh_token = create_refresh_token(identity = db_auth.id, additional_claims={'role': role})
+        access_token = create_access_token(identity = db_auth.id, additional_claims = {'user_id':user_id ,'role': role, 'permissions': permissions})
+        refresh_token = create_refresh_token(identity = db_auth.id, additional_claims = {'user_id':user_id ,'role': role, 'permissions': permissions})
         
         return make_response(jsonify({"access_token":access_token,"refresh_token":refresh_token,"email":db_auth.email}), HTTP_200_OK)
             
@@ -70,9 +73,11 @@ class RefreshResource(Resource):
 
             current_token = get_jwt()
             role = current_token['role']
+            permissions = current_token['permissions']
+            user_id = current_token['user_id']
 
-            new_access_token = create_access_token(identity = current_user, additional_claims={'role': role})
-            new_refresh_token = create_refresh_token(identity = current_user, additional_claims={'role': role})
+            new_access_token = create_access_token(identity = current_user, additional_claims = {'user_id':user_id ,'role': role, 'permissions':permissions})
+            new_refresh_token = create_refresh_token(identity = current_user, additional_claims = {'user_id':user_id ,'role': role, 'permissions':permissions})
 
             return make_response(jsonify({"access_token": new_access_token, "refresh_token":new_refresh_token}), HTTP_200_OK)
         except Exception as e:

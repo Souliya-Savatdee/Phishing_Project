@@ -64,8 +64,7 @@ class html_file(Resource):
             return make_response(jsonify({"error": "Target ID is required"}), 400)
 
         result = (
-            db.session.query(Campaign.cam_id)
-            .join(Group, Group.camp_id == Campaign.cam_id)
+            db.session.query(Group.id)
             .join(t_grouptarget, t_grouptarget.c.groupid == Group.id)
             .join(Target, t_grouptarget.c.targetid == Target.id)
             .filter(Target.id == target_id)
@@ -73,6 +72,6 @@ class html_file(Resource):
         )
 
         if result:
-            return result.cam_id                #make_response(jsonify({"page_id": result.page_id}), 200)
+            return result.id                #make_response(jsonify({"page_id": result.page_id}), 200)
         else:
             return make_response(jsonify({"error": "No campaign found for the given target ID"}), 404)

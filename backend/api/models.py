@@ -174,7 +174,7 @@ t_role_permission = Table(
 #         user_data = {
 #             'id': 'd00ebeb6-81d2-4ca0-9430-ee8b80aebeca',
 #             'email': 'admin@admin.com',
-#             'password': 'scrypt:32768:8:1$z2trXDIlYeDAH2PT$7435443d88549c23daff9ad6a2ad4cdbb7fe4ad950b094e6b4c0063b8d96a04ca7800b15acf66906503e00eab6bb0ae7e7c5253aae71557e245c852bc292ef7f',
+#             'password': 'pbkdf2:sha256:600000$k45C7Oefu8LsyfML$4dbe78d63f60f8653160a631fe6765de46bca5d8172ed81459b83ff50a794d6e',
 #             'role_id': 1
 #         }
 #         user = User(**user_data)
