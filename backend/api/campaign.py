@@ -1,12 +1,14 @@
-import re
-from datetime import datetime
 import random
+import os
+from pathlib import Path
+from datetime import datetime
 from flask import request, jsonify, make_response
 from flask_restx import Resource, fields, Namespace
 from flask_jwt_extended import get_jwt, jwt_required
 
-from api.models import db, Group, Target, User, Smtp, Template, Page, Campaign, Result
-from sender.mail_sender import send_emails
+from api.models import db, Group, User, Smtp, Template, Page, Campaign, Result
+from sender.mail_sender import send_emails 
+from result.xlsx import create_excel_file
 from constans.http_status_code import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -63,7 +65,7 @@ class CampaignManagments(Resource):
         data = request.get_json()
         cam_name = data.get("cam_name")
         # status = data.get("status")
-        user_id = data.get("user_id")
+        user_id = data.get("user_id")           #user belong to (not mean that user create this campaign)
         group_id = data.get("group_id")
         page_id = data.get("page_id")
         temp_id = data.get("temp_id")
@@ -71,6 +73,7 @@ class CampaignManagments(Resource):
         send_data = data.get("send_data")
         # launch_date = data.get("launch_date")
         completed_date = data.get("completed_date")
+        
         
         # validate empty fields
         
@@ -87,6 +90,7 @@ class CampaignManagments(Resource):
         
         db_User = db.session.query(User).filter_by(id = user_id).first()
         email = db_User.email
+        user_belongs_to = db_User.email
         
         db_group = db.session.query(Group).filter_by(id = group_id).first()
         targets = []
@@ -95,9 +99,12 @@ class CampaignManagments(Resource):
             targets.append(
                 {
                     "email": target.email,
-                    "user_id": target.id
+                    "user_id": target.id,
+                    "first_name": target.firstname,
+                    "last_name": target.lastname
                 }
             )
+        
         
         db_page = db.session.query(Page).filter_by(page_id = page_id).first()
         page_path = db_page.path
@@ -117,15 +124,18 @@ class CampaignManagments(Resource):
         smtp_sender = db_smtp.from_address
         smtp_host, smtp_port = (db_smtp.host).split(':')
         
-        # send_emails(subject, smtp_sender, smtp_password, smtp_host, smtp_port, targets, email_template)
         
         current_date = datetime.now()
         cam_id = random.randint(100, 10000)
         
+        #total target
+        total_targets = len(targets)
+        status_result = f"{total_targets} | 0 | 0 | 0 | 0 | 0 "
+        
         new_campaign = Campaign(
             cam_id = cam_id,
             cam_name = cam_name, 
-            # status = status,
+            status = "In Progress",
             user_id = user_id,
             group_id = group_id,
             page_id = page_id,
@@ -140,6 +150,7 @@ class CampaignManagments(Resource):
 
                 email = "admin@admin.com",
                 cam_id = cam_id,
+                status = status_result
         )
         
         db_update_group_cam_id = db.session.query(Group).filter_by(id = group_id).first()
@@ -147,8 +158,16 @@ class CampaignManagments(Resource):
         db.session.add(new_campaign)
         db.session.add(new_resualt)
         db_update_group_cam_id.camp_id = cam_id
+        # db.session.commit()
         
-        db.session.commit()
+        base_dir = Path(__file__).resolve().parent.parent  
+        directory = base_dir / 'result'
+        excel_file = f"{cam_name}_result.xlsx"
+        file_path = directory / excel_file
+        
+        create_excel_file(file_path, targets, user_belongs_to, cam_name)
+        send_emails(subject, smtp_sender, smtp_password, smtp_host, smtp_port, targets, email_template, file_path)
+        
         return make_response(
             jsonify({"msg": "Campaign created successfully "}), HTTP_201_CREATED
         )
@@ -194,14 +213,37 @@ class CampaignManagments(Resource):
             
 @campaign_ns.route("/<int:id>")
 class CampaignManagment(Resource):
+    # @jwt_required()
+    
     def delete(self, id):
         # permission_check = check_admin_permission()
         # if permission_check:
         #     return permission_check
         
+
+        
         db_campaign = db.session.query(Campaign).filter_by(cam_id = id).first()
+        cam_name = db_campaign.cam_name
+        if not db_campaign:
+            return make_response(
+                jsonify({"msg": "Campaign not found"}), HTTP_404_NOT_FOUND
+            )
+            
+        #remove file result of campaign
+        base_dir = Path(__file__).resolve().parent.parent  
+        directory = base_dir / 'result'
+        html_file = f"{cam_name}_result.xlsx"
+        file_path = directory / html_file
+        os.remove(file_path)
+            
+        db_resualt = db.session.query(Result).filter_by(cam_id = id).first()
+        db_group = db.session.query(Group).filter_by(camp_id = id).first()
+        
+        db.session.delete(db_resualt)
         db.session.delete(db_campaign)
+        db_group.camp_id = None
         db.session.commit()
+        
         return make_response(
             jsonify({"msg": "Campaign deleted successfully "}), HTTP_200_OK
         )

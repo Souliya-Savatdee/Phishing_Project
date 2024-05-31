@@ -82,7 +82,7 @@ class LandingManagments(Resource):
         
         #path
         base_dir = Path(__file__).resolve().parent.parent  # This gets the base directory (2 levels up from api)
-        directory = base_dir / 'clone' / 'landing_page'
+        directory = base_dir / 'templates'
         html_file = f"{land_name}.html"
         file_path = str(directory / html_file)
         
@@ -208,7 +208,7 @@ class LandingManagment(Resource):
         
         #path
         base_dir = Path(__file__).resolve().parent.parent  # This gets the base directory (2 levels up from api)
-        directory = base_dir / 'clone' / 'landing_page'
+        directory = base_dir / 'templates'
         html_file = f"{land_name}.html"
         file_path = directory / html_file
         

@@ -19,6 +19,7 @@ from api.landing_page import landing_page_ns
 from api.landing_page import landing_page_ns
 from api.campaign import campaign_ns
 from api.tracker import tracker_ns
+from api.result import result_campaign_ns
 
 
 
@@ -55,6 +56,7 @@ def create_app(config=None):
     api.add_namespace(landing_page_ns)
     api.add_namespace(campaign_ns)
     api.add_namespace(tracker_ns)
+    api.add_namespace(result_campaign_ns)
         
 
     #app shell

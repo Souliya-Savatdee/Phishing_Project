@@ -106,7 +106,7 @@ class GroupManagments(Resource):
 
         for target in target_list:
 
-            t = Target(email=target["email"], firstname=target["firstname"])
+            t = Target(email=target["email"], firstname=target["firstname"], lastname=target["lastname"],)
             g.target.append(t)
 
         db.session.add(g)
