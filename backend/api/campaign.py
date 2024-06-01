@@ -76,7 +76,6 @@ class CampaignManagments(Resource):
         
         
         # validate empty fields
-        
         if not user_id:
             return make_response(
                 jsonify({"msg": "No user belong provided"}), HTTP_400_BAD_REQUEST
@@ -86,10 +85,13 @@ class CampaignManagments(Resource):
             return make_response(
                 jsonify({"msg": "No End date provided"}), HTTP_400_BAD_REQUEST
             )
+        
             
+        validate_name = validate_strip(cam_name, "campaign name")
+        if validate_name:
+            return validate_name    
         
         db_User = db.session.query(User).filter_by(id = user_id).first()
-        email = db_User.email
         user_belongs_to = db_User.email
         
         db_group = db.session.query(Group).filter_by(id = group_id).first()
@@ -152,14 +154,14 @@ class CampaignManagments(Resource):
                 cam_id = cam_id,
                 status = status_result
         )
-        
-        db_update_group_cam_id = db.session.query(Group).filter_by(id = group_id).first()
-        
-        db.session.add(new_campaign)
+
         db.session.add(new_resualt)
-        db_update_group_cam_id.camp_id = cam_id
-        # db.session.commit()
+        db.session.add(new_campaign)
+        db.session.commit()
+        db_group.cam_id = cam_id
+        db.session.commit()
         
+
         base_dir = Path(__file__).resolve().parent.parent  
         directory = base_dir / 'result'
         excel_file = f"{cam_name}_result.xlsx"
@@ -171,15 +173,6 @@ class CampaignManagments(Resource):
         return make_response(
             jsonify({"msg": "Campaign created successfully "}), HTTP_201_CREATED
         )
-        
-        
-        
-        
-        
-        
-        
-        
-        
         
         
         
@@ -210,7 +203,6 @@ class CampaignManagments(Resource):
         return make_response(jsonify({"campaign":data}), HTTP_200_OK)
             
             
-            
 @campaign_ns.route("/<int:id>")
 class CampaignManagment(Resource):
     # @jwt_required()
@@ -220,29 +212,25 @@ class CampaignManagment(Resource):
         # if permission_check:
         #     return permission_check
         
-
-        
         db_campaign = db.session.query(Campaign).filter_by(cam_id = id).first()
-        cam_name = db_campaign.cam_name
         if not db_campaign:
             return make_response(
                 jsonify({"msg": "Campaign not found"}), HTTP_404_NOT_FOUND
             )
             
-        #remove file result of campaign
-        base_dir = Path(__file__).resolve().parent.parent  
-        directory = base_dir / 'result'
-        html_file = f"{cam_name}_result.xlsx"
-        file_path = directory / html_file
-        os.remove(file_path)
-            
-        db_resualt = db.session.query(Result).filter_by(cam_id = id).first()
-        db_group = db.session.query(Group).filter_by(camp_id = id).first()
-        
-        db.session.delete(db_resualt)
-        db.session.delete(db_campaign)
-        db_group.camp_id = None
+        cam_name = db_campaign.cam_name
+
+        if db_campaign.group:
+            db_campaign.group.cam_id = None
         db.session.commit()
+        
+        db.session.delete(db_campaign)
+        db.session.commit()
+        
+        # remove file result of campaign
+        base_dir = Path(__file__).resolve().parent.parent  
+        file_path = base_dir / 'result' / f"{cam_name}_result.xlsx"
+        os.remove(file_path)
         
         return make_response(
             jsonify({"msg": "Campaign deleted successfully "}), HTTP_200_OK

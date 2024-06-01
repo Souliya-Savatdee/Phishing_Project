@@ -183,8 +183,9 @@ class UserManagements(Resource):
         db_users = db.session.query(User).all()
         data = []
         for user in db_users:
-            role = db.session.query(Role).get(user.role_id)
-            permissions = [perm.perm_name for perm in role.permissions]
+            role_permission = user.role.permissions
+            
+            permissions = [perm.perm_name for perm in role_permission]
             if user.modified_date:
                 modifile_date = user.modified_date.strftime('%Y-%m-%d')
             else:
@@ -194,7 +195,7 @@ class UserManagements(Resource):
                     "user_id": user.id,
                     "email": user.email,
                     "role": {
-                        'role_name': role.role_name,
+                        'role_name': user.role.role_name,
                         'permissions': permissions,
                     },
                     "modifile_date": modifile_date,
@@ -247,6 +248,7 @@ class UserManagement(Resource):
             return make_response(
                 jsonify({"msg": "Invalid email address"}), HTTP_400_BAD_REQUEST
             )
+        db_user = db.session.query(User).filter_by(id=id).first()
 
         if email and confirm_password.strip() == "" and new_password.strip() == "":
             db_usr = (
@@ -258,7 +260,7 @@ class UserManagement(Resource):
                 )
             current_datetime = datetime.now()
     
-            db_user = db.session.query(User).filter_by(id=id).first()
+
             db_user.email = email
             db_user.modified_date = current_datetime
 
@@ -270,7 +272,6 @@ class UserManagement(Resource):
         if check_password_policy is not None:
             return check_password_policy
 
-        db_user = db.session.query(User).filter_by(id=id).first()
 
         db_usr = (
             db.session.query(User).filter(User.email == email, User.id != id).first()
@@ -326,6 +327,7 @@ class UserSetting(Resource):
         if not db_user:
             return make_response(jsonify({"msg": "User not found"}), HTTP_404_NOT_FOUND)
 
+        #change only email
         if email and confirm_password.strip() == "" and new_password.strip() == "":
             db_usr = (
                 db.session.query(User).filter(User.email == email, User.id != id).first()
@@ -337,7 +339,6 @@ class UserSetting(Resource):
                 
             current_datetime = datetime.now()
                 
-            db_user = db.session.query(User).filter_by(id = id).first()
             db_user.email = email
             db_user.modified_date = current_datetime
             
@@ -374,16 +375,17 @@ class UserSetting(Resource):
         db.session.commit()
         return make_response(jsonify({"msg": "User Updated"}), HTTP_200_OK)
 
+
     # @jwt_required()
     def get(self, id):
+        
         db_user = db.session.query(User).filter_by(id = id).first()
         if not db_user:
             return make_response(jsonify({"msg": "User not found"}), HTTP_404_NOT_FOUND)
         
         data=[]
-
-        role = db.session.query(Role).get(db_user.role_id)
-        permissions = [perm.perm_name for perm in role.permissions]
+        role_permissions = db_user.role.permissions
+        permissions = [perm.perm_name for perm in role_permissions]
         if db_user.modified_date:
             modifile_date = db_user.modified_date.strftime('%Y-%m-%d')
         else:
@@ -393,7 +395,7 @@ class UserSetting(Resource):
                 "user_id": db_user.id,
                 "email": db_user.email,
                 "role": {
-                    'role_name': role.role_name,
+                    'role_name': db_user.role.role_name,
                     'permissions': permissions,
                 },
                 "modifile_date": modifile_date,

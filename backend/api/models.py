@@ -26,19 +26,26 @@ class Campaign(Base):
     completed_date = Column(DateTime)
     launch_date = Column(DateTime, nullable=False)
     send_data = Column(DateTime, nullable=False)
-    user_id = Column(UUID, nullable=False)
-    group_id = Column(Integer, nullable=False)                      
-    page_id = Column(Integer)                                       
-    temp_id = Column(Integer)                                       
-    smtp_id = Column(Integer, nullable=False)                       
-
+    user_id = Column(ForeignKey('users.id'), nullable=False)
+    group_id = Column(ForeignKey('groups.id'), nullable=False)
+    page_id = Column(ForeignKey('page.page_id'))
+    temp_id = Column(ForeignKey('template.temp_id'))
+    smtp_id = Column(ForeignKey('smtp.smtp_id'), nullable=False)  
+                   
+    user = relationship('User', backref='campaigns')
+    group = relationship('Group', backref='campaigns',foreign_keys=[group_id])
+    page = relationship('Page', backref='campaigns')
+    template = relationship('Template', backref='campaigns')
+    smtp = relationship('Smtp', backref='campaigns')
+    
+    results = relationship('Result', backref='campaign', cascade='all, delete-orphan')
 
 class Group(Base):
     __tablename__ = 'groups'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     groupname = Column(String(100), nullable=False)
-    camp_id = Column(Integer)
+    cam_id = Column(ForeignKey('campaign.cam_id'))        
     modified_date = Column(DateTime)
     
     target = relationship('Target', secondary='grouptarget')        
@@ -49,12 +56,9 @@ class Page(Base):
 
     page_id = Column(Integer, primary_key=True, autoincrement=True)
     path = Column(Text)
-    
     modified_date = Column(DateTime)
     
     
-
-
 class Permission(Base):
     __tablename__ = 'permission'
 
@@ -70,7 +74,7 @@ class Result(Base):
     email = Column(String(100), nullable=False)
     status = Column(String(100))
     modified_date = Column(DateTime)
-    cam_id = Column(Integer)
+    cam_id = Column(ForeignKey('campaign.cam_id'))
 
 
 class Role(Base):
@@ -90,9 +94,7 @@ class Smtp(Base):
     username = Column(String(100), nullable=False)
     password = Column(String(100), nullable=False)
     from_address = Column(String(100), nullable=False)
-    # ignore_cert_errors = Column(Boolean)   
     modified_date = Column(DateTime)
-
 
 
 class Target(Base):
@@ -104,10 +106,10 @@ class Target(Base):
     email = Column(String(100), nullable=False)
     hostname = Column(String(100))
     ip_addr = Column(String(15))
-    sess_id = Column(String(15))  
+    sess_id = Column(String(100))  
     status = Column(String(30))  
     recv_data = Column(Text)
-        
+
 
 class Template(Base):
     __tablename__ = 'template'
@@ -120,14 +122,6 @@ class Template(Base):
     modified_date = Column(DateTime)
     
     
-
-t_grouptarget = Table(                                       
-    'grouptarget', metadata,
-    Column('groupid', ForeignKey('groups.id')),
-    Column('targetid', ForeignKey('target.id'))
-)
-
-
 class User(Base):
     __tablename__ = 'users'
 
@@ -139,12 +133,20 @@ class User(Base):
 
     role = relationship('Role')                                     
 
+t_grouptarget = Table(                                       
+    'grouptarget', metadata,
+    Column('groupid', ForeignKey('groups.id')),
+    Column('targetid', ForeignKey('target.id'))
+)
 
 t_role_permission = Table(                                          
     'role_permission', metadata,
     Column('roleid', ForeignKey('role.role_id')),
     Column('permid', ForeignKey('permission.perm_id'))
 )
+
+
+
 
 # def add_default_data():
 #     Session = sessionmaker(bind=engine)
@@ -206,3 +208,5 @@ t_role_permission = Table(
 #         print(f"Error adding default data: {e}")
 #     finally:
 #         session.close()
+        
+        

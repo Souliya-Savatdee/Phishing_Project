@@ -23,8 +23,6 @@ class ResultCampaign(Resource):
     def get(self):
 
         db_result = db.session.query(Result).all()
-        # status = db_result.status
-        # status_list = [int(num.strip()) for num in status.split("|")]
         data = []
         for result in db_result:
             status = result.status
@@ -64,7 +62,7 @@ class DownloanManagment(Resource):
             )
 
         db_campaign = (
-            db.session.query(Campaign).filter_by(cam_id=db_result.cam_id).first()
+            db.session.query(Campaign).filter_by(cam_id = db_result.cam_id).first()
         )
         cam_name = db_campaign.cam_name
         file_path = f"/Users/souliya/Desktop/Project Phishing/backend/result/{cam_name}_result.xlsx"

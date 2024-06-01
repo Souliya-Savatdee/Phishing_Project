@@ -55,9 +55,9 @@ def validate_email(email):
 
 @group_ns.route("/")
 class GroupManagments(Resource):
+    
     # Create Group
     # @jwt_required()
-    
     @group_ns.expect(group_model)
     def post(self):
         
@@ -96,27 +96,27 @@ class GroupManagments(Resource):
             
             
         # Check if group name already exists
-        db_group = db.session.query(Group).filter_by(groupname=group_name).first()
+        db_group = db.session.query(Group).filter_by(groupname = group_name).first()
         if db_group is not None:
             return make_response(
                 jsonify({"msg": "Group name already taken"}), HTTP_409_CONFLICT
             )
 
-        g = Group(groupname=group_name)
+        group = Group(groupname = group_name)
 
         for target in target_list:
 
-            t = Target(email=target["email"], firstname=target["firstname"], lastname=target["lastname"],)
-            g.target.append(t)
+            t = Target(email=target["email"], firstname=target["firstname"], lastname=target.get("lastname", None))
+            group.target.append(t)
 
-        db.session.add(g)
+        db.session.add(group)
         db.session.commit()
 
         return make_response(jsonify({"msg": "Group created"}), HTTP_201_CREATED)
 
+
     # Get all groups
     # @jwt_required()
-    
     def get(self):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -195,12 +195,12 @@ class GroupManagments(Resource):
         if not group:
             return make_response(jsonify({"msg": "Group not found"}), HTTP_404_NOT_FOUND)
         
-         # Check if group name already exists (exclude current group)
+
         db_group = db.session.query(Group).filter(Group.groupname == group_name, Group.id != group_id).first()
         if db_group:
             return make_response(jsonify({"msg": "Group name already taken"}), HTTP_409_CONFLICT)
         
-        # Add id target to list
+
         target_id = []
         for t in group.target:
             target_id.append(t.id)
@@ -217,7 +217,7 @@ class GroupManagments(Resource):
             group.target.append(t)
             
         current_datetime = datetime.now()    
-        # Update group details
+
         group.groupname = group_name
         group.modified_date = current_datetime
         db.session.commit()
@@ -249,10 +249,10 @@ class GroupManagments(Resource):
         
         # Delete the targets associated with the group
         for t in targets:
-            db.session.query(Target).filter_by(id=t).delete()
+            db.session.query(Target).filter_by(id = t).delete()
             
-        # Delete the group
-        db.session.query(Group).filter_by(id=group_id).delete()
+
+        db.session.query(Group).filter_by(id = group_id).delete()
         db.session.commit()
 
         return make_response(jsonify({"msg": "Group deleted"}), HTTP_200_OK)
@@ -276,14 +276,14 @@ class GroupManagments(Resource):
         else:
             modifile_date = None 
         data = []
-        for i in db_group.target:
+        for t in db_group.target:
             data.append(
                 {
-                    "id": i.id,
-                    "email": i.email,
-                    "firstname": i.firstname,
-                    "lastname": i.lastname,
-                    "ip_addr": i.ip_addr,
+                    "id": t.id,
+                    "email": t.email,
+                    "firstname": t.firstname,
+                    "lastname": t.lastname,
+                    "ip_addr": t.ip_addr,
                 }
             )
         return make_response(jsonify({"group_name": group_name, "group_id": db_group.id, "target_list": data, "modified_date": modifile_date}), HTTP_200_OK)

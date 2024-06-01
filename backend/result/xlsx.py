@@ -3,21 +3,18 @@ from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.utils import get_column_letter
 
 def create_excel_file(file_path, targets, owner_email, name_of_campaign):
-    # Create a new workbook and select the active worksheet
+
     wb = Workbook()
     ws = wb.active
 
-    # Set the title of the worksheet
     ws.title = "Result campaign"
 
-    # Set the title of the table
     ws.merge_cells('A1:H1')
     title_cell = ws['A1']
     title_cell.value = f"{name_of_campaign} campaign of {owner_email}"
     title_cell.font = Font(size=14, bold=True)
     title_cell.alignment = Alignment(horizontal='center', vertical='center')
 
-    # Set the headers
     headers = ["Amount", "Firstname", "Lastname", "Email", "Open email", "Click link", "Submit data", "Error"]
     header_fill = PatternFill(start_color="FFCC00", end_color="FFCC00", fill_type="solid")
 
@@ -28,7 +25,6 @@ def create_excel_file(file_path, targets, owner_email, name_of_campaign):
         cell.alignment = Alignment(horizontal='center', vertical='center')
         cell.fill = header_fill
 
-    # Add data to the table
     for row_num, target in enumerate(targets, 3):
         amount_cell = ws.cell(row=row_num, column=1)
         amount_cell.value = row_num - 2  
@@ -52,7 +48,7 @@ def create_excel_file(file_path, targets, owner_email, name_of_campaign):
 
 
 
-def edit_exel_file(file_path, email, column_index, char="✗"):
+def edit_excel_file(file_path, email, column_index, char="✗"):
     wb = load_workbook(file_path)
 
     sheet = wb.active

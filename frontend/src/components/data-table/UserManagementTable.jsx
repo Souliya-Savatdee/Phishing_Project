@@ -20,19 +20,20 @@ import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 
-function createData(id, name, role) {
+function createData(id, name, role, last_modified_date) {
 
     return {
         id,
         name,
         role,
+        last_modified_date
     };
 };
 
 
 const rows = [
-    createData(1, "admin@admin.com", "admin"),
-    createData(2, "user@user.com", "user"),
+    createData(1, "admin@admin.com", "admin", "2024-5-10"),
+    createData(2, "user@user.com", "user", "2024-5-10"),
 
 
 ];
@@ -79,6 +80,13 @@ const headCells = [
         numeric: true,
         disablePadding: false,
         label: "Role",
+        sortable: true,
+    },
+    {
+        id: "last_modified_date",
+        numeric: true,
+        disablePadding: false,
+        label: "Last Modified Date",
         sortable: true,
     },
     {
@@ -371,6 +379,11 @@ export default function EnhancedTable() {
                                             align="right"
                                         >
                                             {row.role}
+                                        </TableCell>
+                                        <TableCell
+                                            align="right"
+                                        >
+                                            {row.last_modified_date}
                                         </TableCell>
 
                                         <TableCell align="right">

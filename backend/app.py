@@ -68,7 +68,7 @@ def create_app(config=None):
             "Campaign":Campaign,
             "Base": Base,
             "engine":engine,
-
+            # "dsd": add_default_data()
         }
         
         
