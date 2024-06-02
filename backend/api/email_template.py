@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import request, jsonify, make_response
 from flask_restx import Resource, fields, Namespace
 from flask_jwt_extended import get_jwt, jwt_required
-from template.text_to_html import text_to_html
+from utils.text_to_html import text_to_html
 
 from constans.http_status_code import (
     HTTP_200_OK,

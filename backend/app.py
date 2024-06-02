@@ -23,6 +23,8 @@ from api.result import result_campaign_ns
 
 
 
+
+
 def create_app(config=None):
     app = Flask(__name__, instance_relative_config=True)
     load_dotenv()
@@ -57,6 +59,7 @@ def create_app(config=None):
     api.add_namespace(campaign_ns)
     api.add_namespace(tracker_ns)
     api.add_namespace(result_campaign_ns)
+
         
 
     #app shell

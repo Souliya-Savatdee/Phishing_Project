@@ -13,6 +13,24 @@ import Logo from "@/assets/Logo/CEIT_hor.png";
 
 const { Header, Sider, Content } = Layout;
 
+
+
+const UserRole = () => {
+  return [
+    {
+      key: "/u/dashboard",
+      icon: <DashboardOutlined />,
+      label: <NavLink to="/u/dashboard">Dashboard</NavLink>,
+    },
+    {
+      key: "/u/campaigns",
+      icon: <BulbOutlined />,
+      label: <NavLink to="/u/campaigns">Campaigns</NavLink>,
+    },
+  ];
+};
+
+
 export default function UDashboardLayout({ children }) {
   const navigate = useNavigate();
 

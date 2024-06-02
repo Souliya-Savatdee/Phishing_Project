@@ -50,8 +50,8 @@ def create_excel_file(file_path, targets, owner_email, name_of_campaign):
 
 def edit_excel_file(file_path, email, column_index, char="✗"):
     wb = load_workbook(file_path)
-
     sheet = wb.active
+    
     for row in sheet.iter_rows(min_row=2, max_row=sheet.max_row, min_col=4, max_col=4):
         for cell in row:
             # Check if the email matches and edit column 8 if true
@@ -64,4 +64,15 @@ def edit_excel_file(file_path, email, column_index, char="✗"):
 
     wb.save(file_path)
     
-    
+
+def check_empty(file_path, email, column_index):
+    wb = load_workbook(file_path)
+    sheet = wb.active
+
+    for row in range(2, sheet.max_row + 1):
+        email_value = sheet.cell(row=row, column=4).value  # Assuming the 'Email' column is at index 4 (D)
+        if email_value == email:
+            open_email_value = sheet.cell(row=row, column=column_index).value
+            return open_email_value is not None and open_email_value != ""
+
+    return False

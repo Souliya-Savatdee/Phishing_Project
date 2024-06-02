@@ -7,8 +7,10 @@ from flask_restx import Resource, fields, Namespace
 from flask_jwt_extended import get_jwt, jwt_required
 
 from api.models import db, Group, User, Smtp, Template, Page, Campaign, Result
-from sender.mail_sender import send_emails 
-from result.xlsx import create_excel_file
+from utils.mail_sender import send_emails 
+from utils.xlsx import create_excel_file
+from utils.file_path_excel import file_path_excel
+
 from constans.http_status_code import (
     HTTP_200_OK,
     HTTP_201_CREATED,
@@ -50,6 +52,7 @@ def validate_strip(profile_name, name):
         return make_response(
             jsonify({"msg": f"No {name} provided"}), HTTP_400_BAD_REQUEST
         )
+        
 
 @campaign_ns.route("/")
 class CampaignManagments(Resource):
@@ -76,16 +79,14 @@ class CampaignManagments(Resource):
         
         
         # validate empty fields
-        if not user_id:
-            return make_response(
-                jsonify({"msg": "No user belong provided"}), HTTP_400_BAD_REQUEST
-            )
         
-        if not completed_date:
-            return make_response(
-                jsonify({"msg": "No End date provided"}), HTTP_400_BAD_REQUEST
-            )
+        validate_user = validate_strip(user_id, "user belong")
+        if validate_user:
+            return validate_user   
         
+        validate_completed = validate_strip(completed_date, "completed date")
+        if validate_completed:
+            return validate_completed 
             
         validate_name = validate_strip(cam_name, "campaign name")
         if validate_name:
@@ -162,10 +163,8 @@ class CampaignManagments(Resource):
         db.session.commit()
         
 
-        base_dir = Path(__file__).resolve().parent.parent  
-        directory = base_dir / 'result'
-        excel_file = f"{cam_name}_result.xlsx"
-        file_path = directory / excel_file
+
+        file_path = file_path_excel(cam_name)
         
         create_excel_file(file_path, targets, user_belongs_to, cam_name)
         send_emails(subject, smtp_sender, smtp_password, smtp_host, smtp_port, targets, email_template, file_path)
@@ -234,4 +233,67 @@ class CampaignManagment(Resource):
         
         return make_response(
             jsonify({"msg": "Campaign deleted successfully "}), HTTP_200_OK
+        )
+        
+        
+        
+
+@campaign_ns.route('/dashboard/')
+class DashboardCampaign(Resource):
+    def get(self):
+        db_campaign = db.session.query(Campaign).all()
+        data = []
+        
+        for campaign in db_campaign:
+            for result in campaign.results:
+                status = result.status
+                status_list = [int(num.strip()) for num in status.split("|")]
+                
+                if result.modified_date:
+                    modified_date = result.modified_date.strftime("%Y-%m-%d")
+                else:
+                    modified_date = None
+                
+                data.append(
+                    {
+                        "cam_id": result.cam_id,
+                        "email": result.email,
+                        "status": {
+                            "total": status_list[0],
+                            "send_mail": status_list[1],
+                            "open": status_list[2],
+                            "click": status_list[3],
+                            "submit": status_list[4],
+                            "error": status_list[5],
+                        },
+                        "modified_date": modified_date,
+                        "create_date": campaign.created_date.strftime("%Y-%m-%d")
+                    }
+                )
+        
+        return make_response(jsonify({"result": data}), HTTP_200_OK)
+
+
+
+@campaign_ns.route('/finish_campaign/<int:id>')
+
+class FinishCampaign(Resource):
+    def get(self, id):
+        db_campaign = db.session.query(Campaign).filter_by(cam_id = id).first()
+        if not db_campaign:
+            return make_response(
+                jsonify({"msg": "Campaign not found"}), HTTP_404_NOT_FOUND
+            )
+        
+        db_campaign.status = "Finished"
+        db_campaign.completed_date = datetime.now()
+        
+        for target in db_campaign.group.target:
+            if target.status is None or (isinstance(target.status, str) and target.status.strip() == ""):
+                target.status = "Failure"
+        
+        db.session.commit()
+        
+        return make_response(
+            jsonify({"msg": "Campaign finished successfully "}), HTTP_200_OK
         )

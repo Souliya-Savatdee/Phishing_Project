@@ -3,27 +3,43 @@
   padding: 0;
 }
 
-.app-logo {
-  width: 260px;
-  height: 230px;
-  margin-bottom: 20px;
+.app-logo_ver {
+  width: 230px;
+  height: 220px;
+  margin-bottom: 30px;
+  margin-top: 10px;
 }
 
 .nav-logo {
   margin: 0.53rem;
   overflow: hidden;
   width: 200px;
-
   & img {
     width: 100%;
   }
 }
 
+
+
+.navbar {
+  display: flex;
+
+  padding: 10px;
+  background-color: #f8f8f8; 
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.navbar-logo {
+  height: 45px; 
+  padding-left: 10px;
+}
+
 .login-form {
-  width: 100vw;
-  height: 100vh;
+  display: flex;
+  justify-content: center;
   align-items: center;
   background-color: white;
+  height: calc(100vh - 150px);
   position: relative;
 }
 
@@ -31,18 +47,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-around;
-  width: 350px;
-  height: 480px;
-  padding: 20px;
+  /* justify-content: space-around; */
+  width: 345px;
+  padding: 10px 10px 30px 10px;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
   background-color: white;
   border-radius: 3px;
-  margin-bottom: 200px;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
 .login-textfield {
@@ -55,11 +65,14 @@
   padding: 10px;
   width: 110px;
   cursor: pointer;
-  background-color: #0f9ed2;
+  background-color: rgb(0,21,40);
   color: white;
   border: none;
   border-radius: 100px;
   font-size: 15px;
+}
+.login_field{
+  margin-bottom: 10px;
 }
 
 /* .main-layout {

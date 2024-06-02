@@ -13,7 +13,6 @@ import {
 } from "@ant-design/icons";
 import { Layout, Menu, Button, theme } from "antd";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
-import PersonIcon from "@mui/icons-material/Person";
 import { NavLink, useLocation } from "react-router-dom";
 import Logo from "../assets/Logo/CEIT_hor.png";
 import { UserOutlined  } from '@ant-design/icons';
@@ -68,7 +67,7 @@ export default function DashboardLayout({ children }) {
         }}
       >
         <div className="nav-logo">
-          <img src={Logo} alt="logo" />
+          <img src={Logo} alt="logo" draggable="false"/>
         </div>
         <Menu
           theme="dark"
@@ -163,7 +162,7 @@ export default function DashboardLayout({ children }) {
                 fontSize: "16px",
                 width: 70,
                 height: 40,
-                backgroundColor: "rgb(0,22,40)",
+                backgroundColor: "rgb(0,21,40)",
                 color: "#FFF",
               }}
               onClick={handleLogoutClick}

@@ -4,7 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from clone.format_data import unescape_html
-from result.xlsx import edit_excel_file
+from utils.xlsx import edit_excel_file
 from api.tracker import get_status_counts, get_result_by_target_id, update_status_counts
 from api.models import db, Target
 
@@ -96,10 +96,8 @@ def send_emails(subject, sender_email, sender_password, SMTP_SERVER, SMTP_PORT, 
                 db_result.status = update_status_counts(counts, 1)
                 db.session.commit()
 
-            email_personalized_content = email_template.replace('[someone@example.com]', receiver_email).replace('[userid]', str(user_id))
-
-            message = create_email_message(subject, sender_email, receiver_email, email_personalized_content)
-
-            send_email(sender_email, message, server)
+                email_personalized_content = email_template.replace('[someone@example.com]', receiver_email).replace('[userid]', str(user_id))
+                message = create_email_message(subject, sender_email, receiver_email, email_personalized_content)
+                send_email(sender_email, message, server)
     finally:
         server.quit()

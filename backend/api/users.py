@@ -174,7 +174,7 @@ class UserManagements(Resource):
         return make_response(jsonify({"msg": "User Created"}), HTTP_201_CREATED)
 
     # Get all users
-    # @jwt_required()
+    @jwt_required()
     def get(self):
         # permission_check = check_admin_permission()
         # if permission_check:

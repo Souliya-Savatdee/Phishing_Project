@@ -14,6 +14,8 @@ import UDashboardPage from "@/pages/uPages/UDashboardPage";
 import UCampaignsPage from "@/pages/uPages/UCampaignsPage";
 import URCampaignsPage from "@/pages/uPages/URCampaignsPage";
 
+import NotFoundPage from "@/pages/NotFoundPage";
+
 import "./App.css";
 
 const router = createBrowserRouter([
@@ -68,6 +70,10 @@ const router = createBrowserRouter([
   {
     path: "/u/campaigns/id",
     element: <URCampaignsPage />
+  },
+  {
+    path: "*",
+    element: <NotFoundPage />
   }
 ]);
 

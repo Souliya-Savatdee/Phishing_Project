@@ -1,59 +1,139 @@
 import { useState } from "react";
 
-import RootLayout from "@/layouts/RootLayout";
-import TextField from "@mui/material/TextField";
-import Logo from "../assets/Logo/CEIT_ver.png";
-import { useNavigate } from "react-router-dom";
 
-import * as React from 'react';
-import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
-import Toolbar from '@mui/material/Toolbar';
+import Alert from '@mui/material/Alert';
 import IconButton from '@mui/material/IconButton';
-import Typography from '@mui/material/Typography';
-import Menu from '@mui/material/Menu';
-import MenuIcon from '@mui/icons-material/Menu';
-import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem';
-import AdbIcon from '@mui/icons-material/Adb';
+import CloseIcon from '@mui/icons-material/Close';
+import AlertTitle from '@mui/material/AlertTitle';
+import Collapse from '@mui/material/Collapse';
+import TextField from "@mui/material/TextField";
 
+import RootLayout from "@/layouts/RootLayout";
+import Logo_ver from "../assets/Logo/CEIT_ver2.png";
+import Logo_hor from "../assets/Logo/CEIT_hor2.png";
+import axios from "../middleware/axios"
+
+import { useNavigate , useLocation} from "react-router-dom";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const navigate = useNavigate();
+  const [show, setShow] = useState(false); //Alerts
+  const [serverResponse, setServerResponse] = useState("");
 
-  const handleSubmit = (event) => {
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+
+  const showEmailError = emailTouched && !email;
+
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    console.log({ username, password });
-    navigate("/dashboard");
-  };
+    try {
+      const response = await axios.post(
+        "auth/login",
+        { email,password },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response){
+        const access_token = response.data.access_token;
+        const refresh_token = response.data.refresh_token;
+        console.log(access_token);
+        localStorage.setItem("access_token", `"${access_token}"`);
+        localStorage.setItem("refresh_token", `"${refresh_token}"`);
+        console.log({ email, password });
 
+        setServerResponse("");
+        setShow(false);
+        
+        navigate(from, { replace: true });
+      }
+
+    } catch (error) {
+      setServerResponse(error.response.data.message);
+      console.log(serverResponse);
+      setShow(true);
+
+    
+  }
+  };
+  
   return (
- 
     <RootLayout>
+      <nav className="navbar">
+        <img
+          src={Logo_hor}
+          draggable="false"
+          alt="App Logo"
+          className="navbar-logo"
+          onContextMenu={(e) => e.preventDefault()}
+          />
+      </nav>
+
+
       <form onSubmit={handleSubmit} className="login-form">
         <div className="login-card">
-          <img src={Logo} alt="App Logo" className="app-logo" />
-
-          <div>
+          {show ? (
+                    <>
+                    <Box sx={{ width: '100%' }}>
+                    <Collapse in={show}>
+                    <Alert
+                    severity="error"
+                    action={
+                      <IconButton
+                        aria-label="close"
+                        color="inherit"
+                        size="small"
+                        onClick={() => {
+                          setShow(false);
+                        }}
+                      >
+                        <CloseIcon fontSize="inherit" />
+                      </IconButton>
+                    }
+                    sx={{ mb: 2 }}
+                  >
+                    <AlertTitle>Error</AlertTitle>
+                     <span>{serverResponse}</span>
+                  </Alert>
+                  </Collapse>
+                  </Box>
+                    </>
+                  ) : null}
+          <img
+            src={Logo_ver}
+            draggable="false"
+            alt="App Logo"
+            className="app-logo_ver"
+            onContextMenu={(e) => e.preventDefault()}
+          />
+          <div className="login_field">
             <TextField
+              error={showEmailError}
+              helperText={showEmailError ? "Email is Required" : ""}
               className="login-textfield"
-              label="Username"
+              label="Email"
               variant="outlined"
               size="small"
-              onChange={(event) => setUsername(event.target.value)}
+              onBlur={() => setEmailTouched(true)}
+              onChange={(event) => setEmail(event.target.value)}
             />
             <TextField
               className="login-textfield"
               label="Password"
               variant="outlined"
               size="small"
+              type="password"
               onChange={(event) => setPassword(event.target.value)}
             />
           </div>

@@ -1,10 +1,14 @@
 import os
 import socket
+from datetime import datetime
 from flask import request, jsonify, make_response, render_template
 from flask_restx import  Namespace, Resource
 
-from result.xlsx import edit_excel_file
 from api.models import Group, Target, Page, Campaign, t_grouptarget,Result, db
+from utils.file_path_excel import file_path_excel
+from utils.xlsx import edit_excel_file , check_empty
+
+
 from constans.http_status_code import (
     HTTP_200_OK,
     HTTP_400_BAD_REQUEST,
@@ -16,14 +20,6 @@ tracker_ns = Namespace("tracker", description="Track email operations")
 
 
 
-# Helper functions to manage status counts
-def get_status_counts(status):
-    counts = status.split(' | ')
-    return list(map(int, counts))
-
-def update_status_counts(counts, index):
-    counts[index] += 1
-    return ' | '.join(map(str, counts))
 
 def get_result_by_target_id(target_id):
     try:
@@ -77,7 +73,13 @@ def get_host_name(ip_address):
     return host_name
 
 
+def get_status_counts(status):
+    counts = status.split(' | ')
+    return list(map(int, counts))
 
+def update_status_counts(counts, index):
+    counts[index] += 1
+    return ' | '.join(map(str, counts))
 
 
     
@@ -89,21 +91,29 @@ class Tracker_click(Resource):
         if not target_id:
             return make_response(jsonify({"error": "Target ID is required"}), HTTP_400_BAD_REQUEST)
         
-        db_result = get_result_by_target_id(target_id)
-
-        counts = get_status_counts(db_result.status)
-        db_result.status = update_status_counts(counts, 2)
-        db.session.commit()
-        
-        db_target = db.session.query(Target).filter_by(id = target_id).first()
-        receiver_email = db_target.email
         db_campaign = get_campaign_by_target_id(target_id)
-        cam_name = db_campaign.cam_name
-        file_path = f"/Users/souliya/Desktop/Project Phishing/backend/result/{cam_name}_result.xlsx"
-        edit_excel_file(file_path, receiver_email, 5 , char="✓")
-        
-        
-        return  make_response(jsonify({"status": db_result.status}), HTTP_200_OK)
+        complete_date = db_campaign.completed_date
+        if datetime.now() < complete_date:
+
+            cam_name = db_campaign.cam_name
+            db_target = db.session.query(Target).filter_by(id = target_id).first()
+            receiver_email = db_target.email
+            file_path = file_path_excel(cam_name)
+            check_loop = check_empty(file_path, receiver_email, 5)
+            if not check_loop :
+            
+                db_result = get_result_by_target_id(target_id)
+
+                counts = get_status_counts(db_result.status)
+                db_result.status = update_status_counts(counts, 2)
+                db.session.commit()
+                
+                
+                
+                edit_excel_file(file_path, receiver_email, 5 , char="✓")
+                
+                
+                return  make_response(jsonify({"status": db_result.status}), HTTP_200_OK)
 
 
 
@@ -115,20 +125,29 @@ class Tracker_open(Resource):
             return make_response(jsonify({"error": "Target ID is required"}), HTTP_400_BAD_REQUEST)
 
         #count click
-        db_result = get_result_by_target_id(target_id)
-        
-        counts = get_status_counts(db_result.status)
-        db_result.status = update_status_counts(counts, 3)
-        db.session.commit()
-
         db_campaign = get_campaign_by_target_id(target_id)
-        cam_name = db_campaign.cam_name
-        db_target = db.session.query(Target).filter_by(id = target_id).first()
-        receiver_email = db_target.email
-        file_path = f"/Users/souliya/Desktop/Project Phishing/backend/result/{cam_name}_result.xlsx"
-        edit_excel_file(file_path, receiver_email, 6 , char="✓")
-        
-        
+        complete_date = db_campaign.completed_date
+        if datetime.now() < complete_date:
+            
+            cam_name = db_campaign.cam_name
+            file_path = file_path_excel(cam_name)
+            
+            db_target = db.session.query(Target).filter_by(id = target_id).first()
+            receiver_email = db_target.email
+            
+            check_loop = check_empty(file_path, receiver_email, 6)
+            if not check_loop:
+                
+                db_result = get_result_by_target_id(target_id)
+                
+                counts = get_status_counts(db_result.status)
+                db_result.status = update_status_counts(counts, 3)
+                db.session.commit()
+
+                
+                
+                edit_excel_file(file_path, receiver_email, 6 , char="✓")
+            
         
         #render template
         page_id = db_campaign.page_id
@@ -162,26 +181,33 @@ class Tracker_send(Resource):
         if not target_id:
             return make_response(jsonify({"error": "Target ID is required"}), HTTP_400_BAD_REQUEST)
         
-        #result column
-        db_result = get_result_by_target_id(target_id)
-        
-        counts = get_status_counts(db_result.status)
-        db_result.status = update_status_counts(counts, 4)
-        
-        db_target = db.session.query(Target).filter_by(id = target_id).first()
-        db_target.ip_addr = ip_address
-        db_target.hostname = host_name
-        db_target.recv_data = recv_data
-        db_target.sess_id = session
-        db_target.status = "Success"
-        
-        db.session.commit()
-        
-        receiver_email = db_target.email
         db_campaign = get_campaign_by_target_id(target_id)
-        cam_name = db_campaign.cam_name
-        file_path = f"/Users/souliya/Desktop/Project Phishing/backend/result/{cam_name}_result.xlsx"
-        edit_excel_file(file_path, receiver_email, 7 , char="✓")
+        complete_date = db_campaign.completed_date
+        if datetime.now() < complete_date:
+        #result column
         
+            cam_name = db_campaign.cam_name
+            file_path = file_path_excel(cam_name)
+            db_target = db.session.query(Target).filter_by(id = target_id).first()
+            receiver_email = db_target.email
+            
+            check_loop = check_empty(file_path, receiver_email, 7)
+            if not check_loop:
+                
+                db_result = get_result_by_target_id(target_id)
+                
+                counts = get_status_counts(db_result.status)
+                db_result.status = update_status_counts(counts, 4)
+                
+                db_target.ip_addr = ip_address
+                db_target.hostname = host_name
+                db_target.recv_data = recv_data
+                db_target.sess_id = session
+                db_target.status = "Success"
+                
+                db.session.commit()
+                
+                edit_excel_file(file_path, receiver_email, 7 , char="✓")
+            
         
         return None
