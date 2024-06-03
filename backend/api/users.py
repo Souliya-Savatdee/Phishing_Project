@@ -154,7 +154,7 @@ class UserManagements(Resource):
             
         role = db.session.query(Role).filter_by(role_id = role_id).first()
         if not role:
-            return make_response(jsonify({'message': 'Role not found'}), HTTP_404_NOT_FOUND)
+            return make_response(jsonify({'msg': 'Role not found'}), HTTP_404_NOT_FOUND)
     
         if role_id == 1:
             default_permissions = [1, 2, 3]
@@ -183,9 +183,9 @@ class UserManagements(Resource):
         db_users = db.session.query(User).all()
         data = []
         for user in db_users:
-            role_permission = user.role.permissions
+            # role_permission = user.role.permissions
             
-            permissions = [perm.perm_name for perm in role_permission]
+            # permissions = [perm.perm_name for perm in role_permission]
             if user.modified_date:
                 modifile_date = user.modified_date.strftime('%Y-%m-%d')
             else:
@@ -194,10 +194,7 @@ class UserManagements(Resource):
                 {
                     "user_id": user.id,
                     "email": user.email,
-                    "role": {
-                        'role_name': user.role.role_name,
-                        'permissions': permissions,
-                    },
+                    "role": user.role.role_name,
                     "modifile_date": modifile_date,
                     }
                 )

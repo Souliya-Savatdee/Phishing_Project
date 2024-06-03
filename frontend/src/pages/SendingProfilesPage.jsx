@@ -10,6 +10,35 @@ export default function SendingProfilesPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Alert
+  const [show, setShow] = useState(false); 
+  const [alertSeverity, setAlertSeverity] = useState("error");
+  const [serverResponse, setServerResponse] = useState("");
+
+  // require
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [confirm_passwordTouched, setConfirmPasswordTouched] = useState(false);
+  const [roleTouched, setRoleTouched] = useState(false);
+
+
+  const [formData, setFormData] = useState({
+    profile_name: "",
+    from_address: "",
+    host: "",
+    username: "",
+    password: "",
+  });
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+
   const showModal = () => {
     setIsModalOpen(true);
   };

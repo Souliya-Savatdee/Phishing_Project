@@ -1,18 +1,10 @@
 import { useState } from "react";
-
-
-import Box from '@mui/material/Box';
-import Alert from '@mui/material/Alert';
-import IconButton from '@mui/material/IconButton';
+import {Box,IconButton, Alert, AlertTitle, Collapse, TextField} from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import AlertTitle from '@mui/material/AlertTitle';
-import Collapse from '@mui/material/Collapse';
-import TextField from "@mui/material/TextField";
-
 import RootLayout from "@/layouts/RootLayout";
 import Logo_ver from "../assets/Logo/CEIT_ver2.png";
 import Logo_hor from "../assets/Logo/CEIT_hor2.png";
-import axios from "../middleware/axios"
+import axios from "@/middleware/axios";
 
 import { useNavigate , useLocation} from "react-router-dom";
 
@@ -24,7 +16,7 @@ export default function LoginPage() {
   const [serverResponse, setServerResponse] = useState("");
 
   const [emailTouched, setEmailTouched] = useState(false);
-  const [passwordTouched, setPasswordTouched] = useState(false);
+  // const [passwordTouched, setPasswordTouched] = useState(false);
 
   const showEmailError = emailTouched && !email;
 
@@ -42,15 +34,19 @@ export default function LoginPage() {
         {
           headers: {
             "Content-Type": "application/json",
+            'Access-Control-Allow-Origin': '*'
           },
         }
       );
+
       if (response){
         const access_token = response.data.access_token;
         const refresh_token = response.data.refresh_token;
         console.log(access_token);
+
         localStorage.setItem("access_token", `"${access_token}"`);
         localStorage.setItem("refresh_token", `"${refresh_token}"`);
+
         console.log({ email, password });
 
         setServerResponse("");
@@ -60,11 +56,9 @@ export default function LoginPage() {
       }
 
     } catch (error) {
-      setServerResponse(error.response.data.message);
+      setServerResponse(error.response.data.msg);
       console.log(serverResponse);
       setShow(true);
-
-    
   }
   };
   

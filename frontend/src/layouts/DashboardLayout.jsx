@@ -27,7 +27,12 @@ export default function DashboardLayout({ children }) {
   };
 
   const handleLogoutClick = () => {
-    navigate("/login");
+    localStorage.clear();
+    setTimeout(() => {
+      navigate("/login");
+    }, 500);
+
+
   };
   const [collapsed, setCollapsed] = useState(false);
   const {

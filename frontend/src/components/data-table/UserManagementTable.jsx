@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
+import CloseIcon from "@mui/icons-material/Close";
+
+import {
+  TextField,
+  MenuItem,
+  Box,
+  IconButton,
+  Alert,
+  AlertTitle,
+  Collapse,
+} from "@mui/material";
+
 import PropTypes from "prop-types";
-import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -16,25 +27,21 @@ import Paper from "@mui/material/Paper";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { visuallyHidden } from "@mui/utils";
 import LinearProgress from "@mui/material/LinearProgress";
-import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 
 import axios from "@/middleware/axios";
 
-function createData(id, name, role, last_modified_date) {
+function createData(id, name, role, last_modified_date, user_id) {
   return {
     id,
     name,
     role,
     last_modified_date,
+    user_id,
   };
 }
 
-const rows = [
-  createData(1, "admin@admin.com", "admin", "2024-5-10"),
-  createData(2, "user@user.com", "user", "2024-5-10"),
-];
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -235,39 +242,61 @@ export default function EnhancedTable() {
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setisModalOpen] = useState(false);
-  const [setModalOpen, setIsModalOpen1] = useState(false);
+  const [setModalOpen, setModalOpen_Delete] = useState(false);
+
+  const [show, setShow] = useState(false); //Alerts
+  const [alertSeverity, setAlertSeverity] = useState("error");
+  const [serverResponse, setServerResponse] = useState("");
+
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [confirm_passwordTouched, setConfirmPasswordTouched] = useState(false);
+  const [roleTouched, setRoleTouched] = useState(false);
+
+  const showEmailError = emailTouched && !email;
+  const showPasswordError = passwordTouched && !password;
+
+  const [rows, setUsersData] = useState([]);
+
+  const [selectedID, setSelectedID] = useState(null);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    confirm_password: "",
+  });
 
   useEffect(() => {
-      getData();
-    }, []);
+    getData();
+  }, []);
 
   const access_token = localStorage.getItem("access_token") || " ";
-  console.log("Access token: " + access_token);
-  console.log(`Bearer ${access_token}`);
 
   const getData = async () => {
     try {
-
-      const response = await axios.get("user", {
-        headers: { headers: { Authorization: `Bearer${access_token}` } },
+      const response = await axios.get("user/", {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
       });
 
       const data = response.data;
-      console.log(data);
-      return data;
+      const formattedData = data.user.map((user, index) =>
+        createData(
+          index + 1,
+          user.email,
+          user.role,
+          user.modifile_date || "N/A",
+          user.user_id
+        )
+      );
+      // console.log(formattedData)
+      setUsersData(formattedData);
     } catch (error) {
       console.log(error);
     }
   };
 
-
-  const showModal1 = () => {
-    setIsModalOpen1(true);
-  };
-  const Cancel = () => {
-    setIsModalOpen1(false);
-  };
-
+  // -------------------------------------------------------------------------------
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
@@ -325,7 +354,10 @@ export default function EnhancedTable() {
     filteredRows,
     getComparator(order, orderBy)
   ).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  // ----------------------------------------------------------------
 
+  
+  // EDIT
   const showModal = () => {
     setisModalOpen(true);
   };
@@ -334,8 +366,82 @@ export default function EnhancedTable() {
     setisModalOpen(false);
   };
 
-  const editAction = () => {
+  const editAction = (row) => {
+    setSelectedID(row.user_id);
+    setFormData({
+      email: row.name,
+      password: "",
+      confirm_password: "",
+    });
     showModal();
+  };
+
+  const handleEdit = async () => {
+    try {
+      const response = await axios.put(
+        `user/management/${selectedID}`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${JSON.parse(access_token)}`,
+          },
+        }
+      );
+
+      if (response) {
+        setAlertSeverity("success");
+        setServerResponse(response.data.msg);
+        setShow(true)
+        setFormData({
+          email: "",
+          password: "",
+          confirm_password: "",
+        });
+
+        setTimeout(() => {
+          setShow(false);
+          setisModalOpen(false);
+        }, 1500);
+
+        getData();
+      }
+    } catch (error) {
+      setAlertSeverity("error");
+      setServerResponse(error.response.data.msg);
+      console.log(serverResponse);
+      setShow(true)
+    }
+  };
+
+
+
+
+  // DELETE
+  const showModal_Delete = (user_id) => {
+    setSelectedID(user_id);
+    setModalOpen_Delete(true);
+  };
+  const Cancel = () => {
+    setModalOpen_Delete(false);
+  };
+
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(`user/management/${selectedID}`, {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
+      });
+
+      if (response) {
+        console.log("Delete successful!");
+
+        setModalOpen_Delete(false);
+        getData();
+      }
+    } catch (error) {
+      console.error("error", error);
+    }
   };
 
   return (
@@ -372,6 +478,7 @@ export default function EnhancedTable() {
                   >
                     <TableCell padding="checkbox"></TableCell>
 
+                    {/* DATA HERE*/}
                     <TableCell
                       component="th"
                       id={labelId}
@@ -382,6 +489,7 @@ export default function EnhancedTable() {
                     </TableCell>
 
                     <TableCell align="right">{row.role}</TableCell>
+
                     <TableCell align="right">
                       {row.last_modified_date}
                     </TableCell>
@@ -391,7 +499,7 @@ export default function EnhancedTable() {
                         <>
                           <Button
                             icon={<EditIcon />}
-                            onClick={editAction}
+                            onClick={() => editAction(row)}
                             style={{
                               fontSize: "16px",
                               width: 70,
@@ -402,7 +510,7 @@ export default function EnhancedTable() {
                           />
                           <Button
                             icon={<DeleteRoundedIcon />}
-                            onClick={showModal1}
+                            onClick={() => showModal_Delete(row.user_id)}
                             style={{
                               fontSize: "16px",
                               width: 70,
@@ -443,6 +551,8 @@ export default function EnhancedTable() {
             </TableBody>
           </Table>
         </TableContainer>
+
+        {/* Modal HERE */}
         <TablePagination
           rowsPerPageOptions={[]}
           sx={{
@@ -481,6 +591,7 @@ export default function EnhancedTable() {
                   fontSize: "13px",
                   height: "36px",
                 }}
+                onClick={handleEdit}
               >
                 SAVE
               </Button>
@@ -488,6 +599,33 @@ export default function EnhancedTable() {
           )}
         >
           <Divider style={{ borderTopColor: "#d5d5d5" }} />
+          {show ? (
+                    <>
+                    <Box sx={{ width: '100%' }}>
+                    <Collapse in={show}>
+                    <Alert
+                    severity={alertSeverity}
+                    action={
+                      <IconButton
+                        aria-label="close"
+                        color="inherit"
+                        size="small"
+                        onClick={() => {
+                          setShow(false);
+                        }}
+                      >
+                        <CloseIcon fontSize="inherit" />
+                      </IconButton>
+                    }
+                    sx={{ mb: 2 }}
+                  >
+                    <AlertTitle>{alertSeverity === "success" ? "Success" : "Error"}</AlertTitle>
+                     <span>{serverResponse}</span>
+                  </Alert>
+                  </Collapse>
+                  </Box>
+                    </>
+                  ) : null}
           <Box
             component="form"
             sx={{
@@ -497,24 +635,39 @@ export default function EnhancedTable() {
             autoComplete="off"
           >
             <div>
-              <TextField label="Username" variant="outlined" />
               <TextField
+                label="Email"
+                variant="outlined"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+              />
+              {/* <TextField
                 label="Old Password"
                 variant="outlined"
                 type="password"
                 autoComplete="current-password"
-              />
+              /> */}
               <TextField
                 label="New Password"
                 variant="outlined"
                 type="password"
                 autoComplete="current-password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
               />
               <TextField
                 label="Confirm Password"
                 variant="outlined"
                 type="password"
                 autoComplete="current-password"
+                value={formData.confirm_password}
+                onChange={(e) =>
+                  setFormData({ ...formData, confirm_password: e.target.value })
+                }
               />
             </div>
           </Box>
@@ -537,6 +690,7 @@ export default function EnhancedTable() {
             <>
               <CancelBtn />
               <Button
+                onClick={handleDelete}
                 style={{
                   borderColor: "rgba(67,190,126,255)",
                   color: "rgba(67,190,126,255)",

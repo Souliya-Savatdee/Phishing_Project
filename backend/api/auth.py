@@ -39,16 +39,16 @@ class LoginResource(Resource):
         password = data.get('password')
 
         if not validate_email(email):
-            return make_response(jsonify({"message":"Invalid email address"}), HTTP_400_BAD_REQUEST)
+            return make_response(jsonify({"msg":"Invalid email address"}), HTTP_400_BAD_REQUEST)
 
         db_auth = db.session.query(User).filter_by(email=email).first()           
 
         if not db_auth:
-            return make_response(jsonify({"message":"Invalid email/password"}), HTTP_400_BAD_REQUEST) 
+            return make_response(jsonify({"msg":"Invalid email/password"}), HTTP_400_BAD_REQUEST) 
 
         isPasswordCorrect = check_password_hash(db_auth.password, password)
         if not isPasswordCorrect:
-            return make_response(jsonify({"message":"Invalid email/password"}), HTTP_400_BAD_REQUEST)
+            return make_response(jsonify({"msg":"Invalid email/password"}), HTTP_400_BAD_REQUEST)
 
         role_permissions = db_auth.role.permissions
         permissions = [perm.perm_name for perm in role_permissions]

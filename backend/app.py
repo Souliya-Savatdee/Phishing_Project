@@ -1,5 +1,5 @@
-from flask import Flask
 import os
+from flask import Flask
 from datetime import timedelta
 
 from flask_restx import Api
@@ -27,8 +27,8 @@ from api.result import result_campaign_ns
 
 def create_app(config=None):
     app = Flask(__name__, instance_relative_config=True)
-    load_dotenv()
     
+    load_dotenv()
     
     if config is None:
         app.config.from_mapping(
@@ -42,13 +42,14 @@ def create_app(config=None):
     else:
         app.config.from_object(DevConfig)
 
+    CORS(app)
 
+    
     db.init_app(app)
     migrate = Migrate(app,db)
+    JWTManager(app)
     api = Api(app, doc='/docs')
 
-    CORS(app)
-    JWTManager(app)
 
     api.add_namespace(auth_ns)
     api.add_namespace(user_ns)
