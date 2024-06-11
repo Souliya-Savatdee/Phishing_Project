@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Divider, Button, Modal, Card, Typography } from "antd";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import DeleteIcon from "@mui/icons-material/Delete";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import EmailSentDonut from "@/components/charts/donut-charts/emailSentDonut";
 import EmailOpenDonut from "@/components/charts/donut-charts/emailOpenDonut";
@@ -12,52 +13,174 @@ import ClickedLinkDonut from "@/components/charts/donut-charts/ClickedLinkDonut"
 import SummittedDataDonut from "@/components/charts/donut-charts/SummittedDataDonut";
 import Linecharts from "@/components/charts/line-charts/Linecharts";
 import EnhancedTable from "@/components/data-table/RcampaingsTable";
+// import EnhancedTable from "@/components/data-table/RcampaignsTable2";
+import useAxiosInterceptor from "@/middleware/interceptors";
 
 export default function RCampaignsPage() {
   const [refreshing, setRefreshing] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
+  const [isModalOpenFinish, setIsModalOpenFinish] = useState(false);
+  const [isFinish, setIsFinished] = useState("");
+
+  const [target, setTarget] = useState([]);
+  const [cam_name, setCamName] = useState("");
   const navigate = useNavigate();
 
   const handlecampaignsClick = () => {
-    navigate('/campaigns');
+    navigate("/campaigns");
   };
+  const { cam_id } = useParams();
 
-  const emailsent = 30;
-  const emailopened = 50;
-  const clickedlink = 50;
-  const summitdata = 70;
+  const [total, setTotal] = useState();
+  const [emailsent, setEmailsent] = useState();
+  const [emailopened, setEmailopened] = useState();
+  const [clickedlink, setClickedlink] = useState();
+  const [summitdata, setSummitdata] = useState();
 
-  const showModal = () => {
-    setIsModalOpen(true);
+  const showModalDelete = () => {
+    setIsModalOpenDelete(true);
+  };
+  const showModalFinish = () => {
+    setIsModalOpenFinish(true);
   };
 
   const handleCancel = () => {
-    setIsModalOpen(false);
+    setIsModalOpenDelete(false);
+    setIsModalOpenFinish(false);
   };
 
   const handleRefresh = () => {
     setRefreshing(true);
+    getDataTargetResult();
     setTimeout(() => {
       setRefreshing(false);
     }, 500);
   };
 
-  return (
+  const axiosPrivate = useAxiosInterceptor();
+  const access_token = localStorage.getItem("access_token") || " ";
 
+  useEffect(() => {
+    getDataTargetResult();
+  }, []);
+
+  const getDataTargetResult = async () => {
+    setTarget([]);
+    try {
+      const response = await axiosPrivate.get(`result/${cam_id}`, {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
+      });
+
+      const data = response.data;
+
+      const target_list = data.targetData.map((target) => ({
+        id: target.Amount,
+        firstname: target.Firstname,
+        lastname: target.Lastname, 
+        email: target.Email,
+        sent: target.Error != "✗" ? "✓" : "✗",
+        open_email: target["Open email"],
+        click_link: target["Click link"],
+        submit_data: target["Submit data"],
+      }));
+
+      setTarget(target_list);
+
+      const cam_Data = data.camData[0];
+
+      setCamName(cam_Data.cam_name);
+      setTotal(cam_Data.status.total);
+      setEmailsent(cam_Data.status.send_mail);
+      setEmailopened(cam_Data.status.open);
+      setClickedlink(cam_Data.status.click);
+      setSummitdata(cam_Data.status.submit);
+
+
+    } catch (error) {
+      if (error.response.status === 404){
+        console.log(error.response.data.msg);
+        navigate("/campaigns");
+      }
+    }
+  };
+
+  //Download Campaign File XLSX
+  const handleExportXLSX = async () => {
+    try {
+      const response = await axiosPrivate.get(
+        `result/download/${cam_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${JSON.parse(access_token)}`,
+          },
+          responseType: 'blob',
+        }
+      );
+      if (response) {
+        
+        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${cam_name}_result.xlsx`; 
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+
+        console.log("ExportXLSX successful!");
+      }
+    } catch (error) {
+      console.error("Error ExportXLSX:", error);
+      console.log(error);
+    }
+  };
+
+  //Delete Campaign
+  const handleDelete = async () => {
+    try {
+      const response = await axiosPrivate.delete(
+        `campaign/${cam_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${JSON.parse(access_token)}`,
+          },
+        }
+      );
+      if (response) {
+        console.log("Delete successful!");
+
+        navigate("/campaigns");
+
+        showModalDelete(false);
+      }
+    } catch (error) {
+      console.error("Error Campaign Result:", error);
+      console.log(error);
+    }
+  };
+
+
+
+  return (
     <>
       <DashboardLayout>
         <Card
-          title={<Typography.Title level={1}>Results of Campaign
-            <Divider />
-          </Typography.Title>}
+          title={
+            <Typography.Title level={1}>
+              Results of Campaign
+              <Divider />
+            </Typography.Title>
+          }
           bordered={false}
-          style=
-          {{
+          style={{
             width: "100%",
             borderBottom: "0 2px solid rgba(0, 0, 0, 0.1)",
-            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)"
+            boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
           }}
-
         >
           <div style={{ display: "flex", gap: "10px" }}>
             <Button
@@ -73,7 +196,8 @@ export default function RCampaignsPage() {
                 justifyContent: "center",
               }}
               onClick={handlecampaignsClick}
-            >BACK
+            >
+              BACK
             </Button>
             <Button
               icon={<AssessmentIcon fontSize="small" />}
@@ -87,7 +211,9 @@ export default function RCampaignsPage() {
                 alignItems: "center",
                 justifyContent: "center",
               }}
-            >Export As CSV
+              onClick={handleExportXLSX}
+            >
+              Export As XLSX
             </Button>
             <Button
               icon={<DeleteIcon fontSize="small" />}
@@ -101,8 +227,9 @@ export default function RCampaignsPage() {
                 alignItems: "center",
                 justifyContent: "center",
               }}
-              onClick={showModal}
-            >Delete
+              onClick={showModalDelete}
+            >
+              Delete
             </Button>
             <Button
               icon={<AutorenewIcon fontSize="small" />}
@@ -118,33 +245,37 @@ export default function RCampaignsPage() {
               }}
               loading={refreshing}
               onClick={handleRefresh}
-            >Refresh
+            >
+              Refresh
             </Button>
+
           </div>
           <Divider />
-          <Typography.Title level={1}>Sales Branch
+          <Typography.Title level={1}>
+            {`${cam_name} ${isFinish}` }
             <Divider />
           </Typography.Title>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <Linecharts />
           </div>
-          <div style={{ display: "flex" }}>
-            <EmailSentDonut emailsent={emailsent} />
-            <EmailOpenDonut emailopened={emailopened} />
-            <ClickedLinkDonut clickedlink={clickedlink} />
-            <SummittedDataDonut summitdata={summitdata} />
+          <div className="dashboard-container">
+            <EmailSentDonut  />
+            <EmailOpenDonut  />
+            <ClickedLinkDonut  />
+            <SummittedDataDonut  />
           </div>
           <div style={{ paddingTop: "10px", paddingBottom: "10px" }}>
             <Typography.Title level={1}>Details</Typography.Title>
           </div>
           <div style={{ marginTop: "10px" }}>
-            <EnhancedTable />
+            <EnhancedTable data={target || []} />
+
           </div>
         </Card>
         <Modal
           title="Delete Item"
           centered
-          open={isModalOpen}
+          open={isModalOpenDelete}
           onCancel={handleCancel}
           cancelButtonProps={{
             style: {
@@ -152,13 +283,12 @@ export default function RCampaignsPage() {
               color: "#FFF",
               fontSize: "13px",
               height: "36px",
-            }
+            },
           }}
           cancelText="CANCEL"
           footer={(_, { CancelBtn }) => (
             <>
-              <CancelBtn
-              />
+              <CancelBtn />
               <Button
                 style={{
                   borderColor: "rgba(67,190,126,255)",
@@ -166,16 +296,52 @@ export default function RCampaignsPage() {
                   fontSize: "13px",
                   height: "36px",
                 }}
-              >OK</Button>
+                onClick={handleDelete}
+              >
+                OK
+              </Button>
+            </>
+          )}
+        >
+          <Typography>Are you sure you want to delete this item?</Typography>
+        </Modal>
+
+        <Modal
+          title="Finish Campaign"
+          centered
+          open={isModalOpenFinish}
+          onCancel={handleCancel}
+          cancelButtonProps={{
+            style: {
+              backgroundColor: "#bebebe",
+              color: "#FFF",
+              fontSize: "13px",
+              height: "36px",
+            },
+          }}
+          cancelText="CANCEL"
+          footer={(_, { CancelBtn }) => (
+            <>
+              <CancelBtn />
+              <Button
+                style={{
+                  borderColor: "rgba(67,190,126,255)",
+                  color: "rgba(67,190,126,255)",
+                  fontSize: "13px",
+                  height: "36px",
+                }}
+                onClick={handleFinish}
+              >
+                OK
+              </Button>
             </>
           )}
         >
           <Typography>
-            Are you sure you want to delete this item?
+            Are you sure you want to finish this Campaign?
           </Typography>
         </Modal>
       </DashboardLayout>
-
     </>
   );
 }

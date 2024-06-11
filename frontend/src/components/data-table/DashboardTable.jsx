@@ -1,19 +1,28 @@
+import React, { useState, useEffect } from "react";
 
-import React, { useState } from "react";
+import {
+  TextField,
+  MenuItem,
+  Box,
+  IconButton,
+  Alert,
+  AlertTitle,
+  Collapse,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TablePagination,
+  TableRow,
+  TableSortLabel,
+  Toolbar,
+  Typography,
+  Paper,
+  LinearProgress,
+} from "@mui/material";
 import PropTypes from "prop-types";
-import Box from "@mui/material/Box";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import { Button,Modal } from "antd";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TablePagination from "@mui/material/TablePagination";
-import TableRow from "@mui/material/TableRow";
-import TableSortLabel from "@mui/material/TableSortLabel";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
-import Paper from "@mui/material/Paper";
+import { Button, Modal } from "antd";
 import EmailIcon from "@mui/icons-material/Email";
 import DraftsIcon from "@mui/icons-material/Drafts";
 import AdsClickRoundedIcon from "@mui/icons-material/AdsClickRounded";
@@ -21,12 +30,12 @@ import ErrorRoundedIcon from "@mui/icons-material/ErrorRounded";
 import GridViewRoundedIcon from "@mui/icons-material/GridViewRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { visuallyHidden } from "@mui/utils";
-import LinearProgress from "@mui/material/LinearProgress";
-import TextField from "@mui/material/TextField";
+import { useNavigate, useLocation } from "react-router-dom";
+
 import SearchIcon from "@mui/icons-material/Search";
+import useAxiosInterceptor from "@/middleware/interceptors";
 
-
-function createData(id, name, created_date, email, drafts, cursor, alert) {
+function createData(id, name, created_date, email, drafts, cursor, alert,result_id) {
   return {
     id,
     name,
@@ -35,19 +44,10 @@ function createData(id, name, created_date, email, drafts, cursor, alert) {
     drafts,
     cursor,
     alert,
-    actions: {
-      deleteAction: () => {
-        console.log(`Delete button clicked for row ${id}`);
-      },
-      editAction: () => {
-        console.log(`Edit button clicked for row ${id}`);
-      },
-      exportAction: () => {
-        console.log(`Export button clicked for row ${id}`);
-      }
-    }
+    result_id,
+    
   };
-};
+}
 function getColorForRow(row, columnId) {
   if (columnId === "email") {
     return "#43bf7d";
@@ -63,12 +63,6 @@ function getColorForRow(row, columnId) {
   }
   return "inherit";
 }
-
-const rows = [
-  createData(1, "Graphic Branch", "2024-5-10", 10, 8, 5,""),
-  createData(2, "Sales Branch", "2024-5-10", 25, 4, 2.,2),
-
-];
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -86,7 +80,6 @@ function getComparator(order, orderBy) {
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-
 function stableSort(array, comparator) {
   const stabilizedThis = array.map((el, index) => [el, index]);
   stabilizedThis.sort((a, b) => {
@@ -100,7 +93,6 @@ function stableSort(array, comparator) {
 }
 
 const headCells = [
-
   {
     id: "name",
     numeric: false,
@@ -133,14 +125,18 @@ const headCells = [
     id: "cursor",
     numeric: false,
     disablePadding: false,
-    label: <AdsClickRoundedIcon style={{ fill: "#f8aa23" }} sx={{ fontSize: 18 }} />,
+    label: (
+      <AdsClickRoundedIcon style={{ fill: "#f8aa23" }} sx={{ fontSize: 18 }} />
+    ),
     sortable: true,
   },
   {
     id: "alert",
     numeric: false,
     disablePadding: false,
-    label: <ErrorRoundedIcon style={{ fill: "#e35e5e" }} sx={{ fontSize: 18 }} />,
+    label: (
+      <ErrorRoundedIcon style={{ fill: "#e35e5e" }} sx={{ fontSize: 18 }} />
+    ),
     sortable: true,
   },
   {
@@ -153,8 +149,7 @@ const headCells = [
 ];
 
 function EnhancedTableHead(props) {
-  const { order, orderBy, onRequestSort } =
-    props;
+  const { order, orderBy, onRequestSort } = props;
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
@@ -179,7 +174,9 @@ function EnhancedTableHead(props) {
                 {headCell.label}
                 {orderBy === headCell.id ? (
                   <Box component="span" sx={visuallyHidden}>
-                    {order === "desc" ? "sorted descending" : "sorted ascending"}
+                    {order === "desc"
+                      ? "sorted descending"
+                      : "sorted ascending"}
                   </Box>
                 ) : null}
               </TableSortLabel>
@@ -209,11 +206,11 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
     value = value > 0 ? value : 1;
     onRowsPerPageChange(value);
   };
-  
+
   const handleSearchChange = (event) => {
     const { value } = event.target;
     setSearchTerm(value);
-    onSearch(value); 
+    onSearch(value);
   };
 
   return (
@@ -223,86 +220,94 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
         pr: { xs: 1, sm: 2 },
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between", 
+        justifyContent: "space-between",
       }}
     >
-      
       <Typography
         sx={{
-        fontSize: "15px",
-        marginRight: "8px"
+          fontSize: "15px",
+          marginRight: "8px",
         }}
         id="tableTitle"
         component="div"
       >
         Show
       </Typography>
-      <TextField 
-      type="number" 
-      size="small" 
-      style = {{width: 70}}
-      value={rowsPerPage}
-      onChange={handleRowsPerPageChange}
+      <TextField
+        type="number"
+        size="small"
+        style={{ width: 70 }}
+        value={rowsPerPage}
+        onChange={handleRowsPerPageChange}
       />
       <Typography
         sx={{
-        fontSize: "15px",
-        marginLeft: "5px"
+          fontSize: "15px",
+          marginLeft: "5px",
         }}
         id="tableTitle"
         component="div"
       >
         Columns
-        </Typography>
-        <div style={{ display: "flex", alignItems: "center", marginLeft: "auto" }}>
-      <Typography
-        sx={{
-        fontSize: "15px",
-        marginRight: "5px"
-        }}
-        id="tableTitle"
-        component="div"
+      </Typography>
+      <div
+        style={{ display: "flex", alignItems: "center", marginLeft: "auto" }}
       >
-        Search:
+        <Typography
+          sx={{
+            fontSize: "15px",
+            marginRight: "5px",
+          }}
+          id="tableTitle"
+          component="div"
+        >
+          Search:
         </Typography>
-      
-      
-        <TextField
-        size="small" 
-        style = {{}}
-        value={searchTerm}
-        onChange={handleSearchChange}
-        InputProps={{
-          endAdornment: (
-            <SearchIcon style={{ marginRight: "8px", color: "gray" }} />
-          ),
-        }}
-        />
 
+        <TextField
+          size="small"
+          style={{}}
+          value={searchTerm}
+          onChange={handleSearchChange}
+          InputProps={{
+            endAdornment: (
+              <SearchIcon style={{ marginRight: "8px", color: "gray" }} />
+            ),
+          }}
+        />
       </div>
-      
-     
     </Toolbar>
   );
 }
 
-
 export default function EnhancedTable() {
-  const [order, setOrder] = React.useState("asc");
-  const [orderBy, setOrderBy] = React.useState("created_date");
-  const [selected, setSelected] = React.useState([]);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("created_date");
+  const [selected, setSelected] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const showModal = () => {
-      setIsModalOpen(true);
-    };
-  
-    const handleCancel = () => {
-      setIsModalOpen(false);
-    };
+  const [rows, setResultData] = useState([]);
+  const [selectedID, setSelectedID] = useState(null);
+
+  const navigate = useNavigate();
+
+  const handleViewResult = (result_id) => {
+    console.log(result_id);
+    navigate(`/campaigns/result/${result_id}`);
+  };
+
+  const showModal_Delete = (result_id) => {
+    setSelectedID(result_id);
+    console.log(result_id);
+    setIsModalOpen(true);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -332,7 +337,7 @@ export default function EnhancedTable() {
     } else if (selectedIndex > 0) {
       newSelected = newSelected.concat(
         selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
+        selected.slice(selectedIndex + 1)
       );
     }
     setSelected(newSelected);
@@ -353,17 +358,71 @@ export default function EnhancedTable() {
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
-  const filteredRows = rows.filter(row => {
-    return (
-      row.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const filteredRows = rows.filter((row) => {
+    return row.name.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
+  const visibleRows = stableSort(
+    filteredRows,
+    getComparator(order, orderBy)
+  ).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-  const visibleRows = stableSort(filteredRows, getComparator(order, orderBy)).slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
-  );
+  const axiosPrivate = useAxiosInterceptor();
+  const access_token = localStorage.getItem("access_token") || " ";
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  const getData = async () => {
+    try {
+      const response = await axiosPrivate.get("campaign/dashboard/", {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
+      });
+
+      const data = response.data;
+      // console.log(data);
+      const formattedData = data.result.map((result, index) =>
+        createData(
+          index + 1,
+          result.cam_name,
+          result.create_date,
+          result.status.send_mail,
+          result.status.open,
+          result.status.click,
+          result.status.submit,
+          result.cam_id
+        )
+      );
+      // console.log(formattedData)
+      setResultData(formattedData);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+
+  const handleDelete = async () => {
+    try {
+      const response = await axiosPrivate.delete(
+        `campaign/${selectedID}`,
+        {
+          headers: {
+            Authorization: `Bearer ${JSON.parse(access_token)}`,
+          },
+        }
+      );
+      if (response) {
+        console.log("Delete successful!");
+        setIsModalOpen(false);
+        getData();
+      }
+    } catch (error) {
+      console.error("error", error);
+    }
+  };
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -374,10 +433,7 @@ export default function EnhancedTable() {
           onSearch={setSearchTerm}
         />
         <TableContainer>
-          <Table
-            sx={{ minWidth: 750 }}
-            aria-labelledby="tableTitle"
-          >
+          <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
             <EnhancedTableHead
               order={order}
               orderBy={orderBy}
@@ -400,9 +456,7 @@ export default function EnhancedTable() {
                     selected={isItemSelected}
                     sx={{ cursor: "pointer" }}
                   >
-                    <TableCell padding="checkbox">
-
-                    </TableCell>
+                    <TableCell padding="checkbox"></TableCell>
                     <TableCell
                       component="th"
                       id={labelId}
@@ -417,16 +471,28 @@ export default function EnhancedTable() {
                     >
                       {row.created_date}
                     </TableCell>
-                    <TableCell align="left" style={{ color: getColorForRow(row, "email") }}>
+                    <TableCell
+                      align="left"
+                      style={{ color: getColorForRow(row, "email") }}
+                    >
                       {row.email}
                     </TableCell>
-                    <TableCell align="left" style={{ color: getColorForRow(row, "drafts") }}>
+                    <TableCell
+                      align="left"
+                      style={{ color: getColorForRow(row, "drafts") }}
+                    >
                       {row.drafts}
                     </TableCell>
-                    <TableCell align="left" style={{ color: getColorForRow(row, "cursor") }}>
+                    <TableCell
+                      align="left"
+                      style={{ color: getColorForRow(row, "cursor") }}
+                    >
                       {row.cursor}
                     </TableCell>
-                    <TableCell align="left" style={{ color: getColorForRow(row, "alert") }}>
+                    <TableCell
+                      align="left"
+                      style={{ color: getColorForRow(row, "alert") }}
+                    >
                       {row.alert}
                     </TableCell>
                     <TableCell align="right">
@@ -434,7 +500,7 @@ export default function EnhancedTable() {
                         <>
                           <Button
                             icon={<GridViewRoundedIcon />}
-                            onClick={row.actions.exportAction}
+                            onClick={() => handleViewResult(row.result_id)}
                             style={{
                               fontSize: "16px",
                               width: 70,
@@ -445,28 +511,39 @@ export default function EnhancedTable() {
                           />
                           <Button
                             icon={<DeleteRoundedIcon />}
-                            onClick={showModal}
+                            onClick={() => showModal_Delete(row.result_id)}
                             style={{
                               fontSize: "16px",
                               width: 70,
                               height: 40,
                               backgroundColor: "#e35e5e",
                               color: "#FFF",
-                            }} />
+                            }}
+                          />
                         </>
                       )}
                     </TableCell>
-
                   </TableRow>
                 );
               })}
               {rows.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={20} style={{ position: "relative" }}>
-                    <LinearProgress style={{ position: "absolute", top: 0, left: 0, right: 0 }} />
-                    <Typography align="center" sx={{
-                      fontSize: "14px",
-                      color: "#c9c9c9",}}>
+                    <LinearProgress
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                      }}
+                    />
+                    <Typography
+                      align="center"
+                      sx={{
+                        fontSize: "14px",
+                        color: "#c9c9c9",
+                      }}
+                    >
                       This might take a while to complete
                     </Typography>
                   </TableCell>
@@ -478,7 +555,7 @@ export default function EnhancedTable() {
         <TablePagination
           rowsPerPageOptions={[]}
           sx={{
-            "& .MuiTablePagination-displayedRows": { display: "none" }
+            "& .MuiTablePagination-displayedRows": { display: "none" },
           }}
           component="div"
           count={rows.length}
@@ -487,41 +564,40 @@ export default function EnhancedTable() {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-    <Modal
-    title="Delete Item"
-    centered
-    open={isModalOpen}
-    onCancel={handleCancel}
-    cancelButtonProps={{
-      style: {
-        backgroundColor: "#ff5252",
-        color: "#FFF",
-        fontSize: "13px",
-        height: "36px",
-      }
-    }}
-    cancelText="CANCEL"
-    footer={(_, { CancelBtn }) => (
-      <>
-        <CancelBtn
-        />
-        <Button
-          style={{
-            borderColor: "rgba(67,190,126,255)",
-            color: "rgba(67,190,126,255)",
-            fontSize: "13px",
-            height: "36px",
+        <Modal
+          title="Delete Item"
+          centered
+          open={isModalOpen}
+          onCancel={handleCancel}
+          cancelButtonProps={{
+            style: {
+              backgroundColor: "#ff5252",
+              color: "#FFF",
+              fontSize: "13px",
+              height: "36px",
+            },
           }}
-        >OK</Button>
-      </>
-    )}
-  >
-    <Typography>
-      Are you sure you want to delete this item?
-    </Typography>
-  </Modal>
+          cancelText="CANCEL"
+          footer={(_, { CancelBtn }) => (
+            <>
+              <CancelBtn />
+              <Button
+                style={{
+                  borderColor: "rgba(67,190,126,255)",
+                  color: "rgba(67,190,126,255)",
+                  fontSize: "13px",
+                  height: "36px",
+                }}
+                onClick={handleDelete}
+              >
+                OK
+              </Button>
+            </>
+          )}
+        >
+          <Typography>Are you sure you want to delete this item?</Typography>
+        </Modal>
       </Paper>
-
     </Box>
   );
 }

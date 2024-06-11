@@ -12,7 +12,8 @@ export default function UCampaignsPage() {
       <Card
         title={<Typography.Title level={1}>
           Campaigns
-          <Divider />
+          <Divider style={{marginBottom:"0px"}} />
+
         </Typography.Title>}
         bordered={false}
         style={{

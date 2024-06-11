@@ -15,7 +15,7 @@ class DevConfig(Config):
     # BEBUG = True
     JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=5)    
-    JWT_REFRESH_TOKEN_EXPIRES = timedelta(hours=5)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(hours=10)
     
     
 class ProdConfig(Config):

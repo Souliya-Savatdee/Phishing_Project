@@ -187,15 +187,15 @@ class UserManagements(Resource):
             
             # permissions = [perm.perm_name for perm in role_permission]
             if user.modified_date:
-                modifile_date = user.modified_date.strftime('%Y-%m-%d')
+                modified_date = user.modified_date.strftime('%Y-%m-%d')
             else:
-                modifile_date = None 
+                modified_date = None 
             data.append(
                 {
                     "user_id": user.id,
                     "email": user.email,
                     "role": user.role.role_name,
-                    "modifile_date": modifile_date,
+                    "modified_date": modified_date,
                     }
                 )
 
@@ -324,23 +324,23 @@ class UserSetting(Resource):
         if not db_user:
             return make_response(jsonify({"msg": "User not found"}), HTTP_404_NOT_FOUND)
 
-        #change only email
-        if email and confirm_password.strip() == "" and new_password.strip() == "":
-            db_usr = (
-                db.session.query(User).filter(User.email == email, User.id != id).first()
-            )
-            if db_usr:
-                return make_response(
-                    jsonify({"msg": "Email already taken"}), HTTP_409_CONFLICT
-                )
+        # #change only email
+        # if email and confirm_password.strip() == "" and new_password.strip() == "":
+        #     db_usr = (
+        #         db.session.query(User).filter(User.email == email, User.id != id).first()
+        #     )
+        #     if db_usr:
+        #         return make_response(
+        #             jsonify({"msg": "Email already taken"}), HTTP_409_CONFLICT
+        #         )
                 
-            current_datetime = datetime.now()
+        #     current_datetime = datetime.now()
                 
-            db_user.email = email
-            db_user.modified_date = current_datetime
+        #     db_user.email = email
+        #     db_user.modified_date = current_datetime
             
-            db.session.commit()
-            return make_response(jsonify({"msg": "User Updated"}), HTTP_200_OK)
+        #     db.session.commit()
+        #     return make_response(jsonify({"msg": "User Updated"}), HTTP_200_OK)
 
 
 
@@ -373,6 +373,9 @@ class UserSetting(Resource):
         return make_response(jsonify({"msg": "User Updated"}), HTTP_200_OK)
 
 
+
+@user_ns.route("/getdata/<uuid:id>")
+class UserData(Resource):
     # @jwt_required()
     def get(self, id):
         
@@ -384,18 +387,15 @@ class UserSetting(Resource):
         role_permissions = db_user.role.permissions
         permissions = [perm.perm_name for perm in role_permissions]
         if db_user.modified_date:
-            modifile_date = db_user.modified_date.strftime('%Y-%m-%d')
+            modified_date = db_user.modified_date.strftime('%Y-%m-%d')
         else:
-            modifile_date = None 
+            modified_date = None 
         data.append(
             {
                 "user_id": db_user.id,
                 "email": db_user.email,
-                "role": {
-                    'role_name': db_user.role.role_name,
-                    'permissions': permissions,
-                },
-                "modifile_date": modifile_date,
+                "role": db_user.role.role_name,
+                "modified_date": modified_date,
                 }
             )
 

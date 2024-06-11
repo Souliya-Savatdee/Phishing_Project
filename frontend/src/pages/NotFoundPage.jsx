@@ -1,7 +1,7 @@
 import React from "react";
 
 const NotFoundPage = () => {
-  localStorage.clear()
+  // localStorage.clear()
   return (
     <div style={{
       display: 'flex',

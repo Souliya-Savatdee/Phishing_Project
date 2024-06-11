@@ -20,6 +20,8 @@ import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 
+
+
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
     return -1;
@@ -333,6 +335,14 @@ export default function EnhancedTable({ data = [] }) {
               {data.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={20} style={{ position: "relative" }}>
+                    <LinearProgress
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                      }}
+                    />
                     <Typography
                       align="center"
                       sx={{
@@ -340,7 +350,7 @@ export default function EnhancedTable({ data = [] }) {
                         color: "#c9c9c9",
                       }}
                     >
-                      No data available
+                      Loading Data...
                     </Typography>
                   </TableCell>
                 </TableRow>

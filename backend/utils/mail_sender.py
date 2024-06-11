@@ -3,7 +3,7 @@ import dns.resolver
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from clone.format_data import unescape_html
+from utils.format_data import unescape_html
 from utils.xlsx import edit_excel_file
 from api.tracker import get_status_counts, get_result_by_target_id, update_status_counts
 from api.models import db, Target

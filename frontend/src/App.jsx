@@ -1,5 +1,4 @@
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import DashboardPage from "@/pages/DashboardPage";
 import CampaignsPage from "@/pages/CampaignsPage";
 import RCampaignsPage from "@/pages/RCampaignsPage";
@@ -14,73 +13,62 @@ import UDashboardPage from "@/pages/uPages/UDashboardPage";
 import UCampaignsPage from "@/pages/uPages/UCampaignsPage";
 import URCampaignsPage from "@/pages/uPages/URCampaignsPage";
 
+
+
 import NotFoundPage from "@/pages/NotFoundPage";
+import Unauthorized from "@/pages/Unauthorized";
+import RequireAuth from "@/require/RequestAuth";
+import Persist from "@/middleware/persistent";
 
 import "./App.css";
-
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <DashboardPage />,
-  },
-  {
-    path: "/login",
-    element: <LoginPage />,
-  },
-  {
-    path: "/dashboard",
-    element: <DashboardPage />,
-  },
-  {
-    path: "/campaigns",
-    element: <CampaignsPage />,
-  },
-  {
-    path: "/campaigns/id",
-    element: <RCampaignsPage />,
-  },
-  {
-    path: "/user-and-group",
-    element: <UserAndGroupPage />,
-  },
-  {
-    path: "/email-templates",
-    element: <EmailTemplatesPage />,
-  },
-  {
-    path: "/landing-pages",
-    element: <LandingPage />,
-  },
-  {
-    path: "/sending-profiles",
-    element: <SendingProfilesPage />,
-  },
-  {
-    path: "/user-management",
-    element: <UserManagementPage />,
-  },
-  {
-    path: "/u/dashboard",
-    element: <UDashboardPage />
-  },
-  {
-    path: "/u/campaigns",
-    element: <UCampaignsPage />
-  },
-  {
-    path: "/u/campaigns/id",
-    element: <URCampaignsPage />
-  },
-  {
-    path: "*",
-    element: <NotFoundPage />
-  }
-]);
 
 export default function App() {
   return (
     <div className="App">
-      <RouterProvider router={router} />
+      <Router>
+        <Routes>
+          <Route element={<Persist />}>
+            {/* Admin Role */}
+            <Route
+              element={
+                <RequireAuth
+                  allowedRoles={["admin"]}
+                  requiredPermissions={["edit", "write", "view"]}
+                />
+              }
+            >
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/campaigns" element={<CampaignsPage />} />
+              <Route path="/campaigns/result/:cam_id" element={<RCampaignsPage />} />
+              <Route path="/user-and-group" element={<UserAndGroupPage />} />
+              <Route path="/email-templates" element={<EmailTemplatesPage />} />
+              <Route path="/landing-pages" element={<LandingPage />} />
+              <Route path="/sending-profiles" element={<SendingProfilesPage />}/>
+              <Route path="/user-management" element={<UserManagementPage />} />
+            </Route>
+
+            {/* User Role */}
+            <Route
+              element={
+                <RequireAuth
+                  allowedRoles={["user"]}
+                  requiredPermissions={["view"]}
+                />
+              }
+            >
+              <Route path="/u/" element={<UDashboardPage />} />
+
+              <Route path="/u/dashboard" element={<UDashboardPage />} />
+              <Route path="/u/campaigns" element={<UCampaignsPage />} />
+              <Route path="/u/campaigns/id" element={<URCampaignsPage />} />
+            </Route>
+          </Route>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Router>
     </div>
   );
 }

@@ -7,8 +7,7 @@ from flask import request, jsonify, make_response
 from flask_restx import Resource, fields, Namespace
 from flask_jwt_extended import get_jwt, jwt_required
 from clone.facebook_clone import modify_html_facebook
-
-from clone.format_data import read_file , write_file, escape_html, unescape_html
+from utils.format_data import read_file , write_file, escape_html, unescape_html
 
 from constans.http_status_code import (
     HTTP_200_OK,
@@ -75,10 +74,10 @@ class LandingManagments(Resource):
         #     return permission_check
         
         data = request.get_json()
-        land_name = data.get("name")
+        land_name = data.get("page_name")
         url = data.get("url")
-        redirectUrl = data.get("redirectUrl")
-        html_data = data.get("html")    
+        redirectUrl = data.get("redirectURL")
+        html_data = data.get("html_data")    
         
         #path
         base_dir = Path(__file__).resolve().parent.parent  # This gets the base directory (2 levels up from api)
@@ -94,7 +93,7 @@ class LandingManagments(Resource):
         if url.strip() == "" and html_data.strip() == "":
             return make_response(jsonify({"msg": "URL to clone or HTML data not provided"}), HTTP_400_BAD_REQUEST)
         if url and html_data :
-            return make_response(jsonify({"msg": "Invalid both, choose one"}), HTTP_400_BAD_REQUEST)
+            return make_response(jsonify({"msg": "Invalid both, choose one (URL or HTML)"}), HTTP_400_BAD_REQUEST)
         if url.strip() != "" and redirectUrl.strip() == "":
             return make_response(jsonify({"msg": "No redirect URL provided"}),HTTP_400_BAD_REQUEST)
         if redirectUrl.strip() != "" and html_data :
@@ -150,17 +149,21 @@ class LandingManagments(Resource):
         
         for landing in db_landing:
             file_path = landing.path
+            htmt_data = read_file(file_path)
             file_name = os.path.basename(file_path)
+            
+            
             if landing.modified_date:
-                modifile_date = landing.modified_date.strftime('%Y-%m-%d')
+                modified_date = landing.modified_date.strftime('%Y-%m-%d')
             else:
-                modifile_date = None 
+                modified_date = None 
             
             data.append(
                 {   
                     "id": landing.page_id,
-                    "html_data": file_name[:-5],
-                    "modified": modifile_date
+                    "page_name": file_name[:-5],
+                    "modified_date": modified_date,
+                    "html_data": htmt_data
                 }
             )
         
@@ -201,10 +204,10 @@ class LandingManagment(Resource):
         #     return permission_check
         
         data = request.get_json()
-        land_name = data.get("name")
+        land_name = data.get("page_name")
         URL = data.get("url")
         RedirectUrl = data.get("redirectUrl")
-        html = data.get("html")
+        html = data.get("html_data")
         
         #path
         base_dir = Path(__file__).resolve().parent.parent  # This gets the base directory (2 levels up from api)
@@ -219,10 +222,10 @@ class LandingManagment(Resource):
                 jsonify({"msg": "Landing Page not found"}), HTTP_404_NOT_FOUND
             )
             
-        if  URL.strip() != "" and RedirectUrl.strip() != "":
+        if  (URL and URL.strip() != "") and (RedirectUrl and RedirectUrl.strip() != ""):
             return make_response(jsonify({"msg": "Do not provied URL and RedirectURL"}), HTTP_400_BAD_REQUEST)
             
-        if html.strip() == "" and land_name:
+        if (html is None or html.strip() == "") and land_name:
             db_land = db.session.query(Page).filter(Page.path == str(file_path), Page.page_id != id).first()
             if db_land:
                 return make_response(jsonify({"msg": "Landing name already taken"}), HTTP_200_OK )

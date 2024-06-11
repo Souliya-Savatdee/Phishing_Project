@@ -81,7 +81,7 @@ class GroupManagments(Resource):
         for target in target_list:
             if not isinstance(target, dict):
                 return make_response(jsonify({"msg": "Each target should be a dictionary"}), HTTP_400_BAD_REQUEST)
-            validate_firstname = validate_strip(target.get("firstname"), "firstname")
+            validate_firstname = validate_strip(target.get("first_name"), "firstname")
             if validate_firstname:
                 return validate_firstname
             
@@ -106,7 +106,7 @@ class GroupManagments(Resource):
 
         for target in target_list:
 
-            t = Target(email=target["email"], firstname=target["firstname"], lastname=target.get("lastname", None))
+            t = Target(email=target["email"], firstname=target["first_name"], lastname=target.get("last_name", None))
             group.target.append(t)
 
         db.session.add(group)
@@ -128,9 +128,9 @@ class GroupManagments(Resource):
         for g in db_groups:
             group_name = g.groupname
             if g.modified_date:
-                modifile_date = g.modified_date.strftime('%Y-%m-%d')
+                modified_date = g.modified_date.strftime('%Y-%m-%d')
             else:
-                modifile_date = None 
+                modified_date = None 
             data = []
             for i in g.target:
                 data.append(
@@ -139,11 +139,11 @@ class GroupManagments(Resource):
                         "email": i.email,
                         "firstname": i.firstname,
                         "lastname": i.lastname,
-                        "ip_addr": i.ip_addr,
                     }
                 )
+            target_amount = len(g.target)
             group_target.append(
-                {"group_name": group_name, "group_id": g.id, "target_list": data , "modified_date": modifile_date}
+                {"group_name": group_name, "group_id": g.id, "target_list": data , "modified_date": modified_date, "target_amount": target_amount}
             )
         return make_response(jsonify({"group_target": group_target}), HTTP_200_OK)
 
@@ -177,7 +177,7 @@ class GroupManagments(Resource):
         for target in target_list:
             if not isinstance(target, dict):
                 return make_response(jsonify({"msg": "Each target should be a dictionary"}), HTTP_400_BAD_REQUEST)
-            validate_firstname = validate_strip(target.get("firstname"), "firstname")
+            validate_firstname = validate_strip(target.get("first_name"), "firstname")
             if validate_firstname:
                 return validate_firstname
 
@@ -212,8 +212,8 @@ class GroupManagments(Resource):
         
         # Add new ones
         for target in target_list:
-            lastname = target.get("lastname") or None
-            t = Target(email=target["email"], firstname=target["firstname"],lastname = lastname)
+            lastname = target.get("last_name") or None
+            t = Target(email=target["email"], firstname=target["first_name"],lastname = lastname)
             group.target.append(t)
             
         current_datetime = datetime.now()    
@@ -272,9 +272,9 @@ class GroupManagments(Resource):
         group_name = db_group.groupname
         
         if db_group.modified_date:
-            modifile_date = db_group.modified_date.strftime('%Y-%m-%d')
+            modified_date = db_group.modified_date.strftime('%Y-%m-%d')
         else:
-            modifile_date = None 
+            modified_date = None 
         data = []
         for t in db_group.target:
             data.append(
@@ -286,5 +286,22 @@ class GroupManagments(Resource):
                     "ip_addr": t.ip_addr,
                 }
             )
-        return make_response(jsonify({"group_name": group_name, "group_id": db_group.id, "target_list": data, "modified_date": modifile_date}), HTTP_200_OK)
+        return make_response(jsonify({"group_name": group_name, "group_id": db_group.id, "target_list": data, "modified_date": modified_date}), HTTP_200_OK)
     
+
+
+# @group_ns.route("/target/<int:id>")
+# class TartgetDelete(Resource):
+#     def delete(self, id):
+#         # Find the target by ID
+#         target = db.session.query(Target).filter_by(id=id).first()
+
+#         # Check if the target exists
+#         if not target:
+#             return jsonify({"msg": "Target not found"}), 404
+
+#         # Delete the target
+#         db.session.delete(target)
+#         db.session.commit()
+
+#         return jsonify({"msg": "Target deleted successfully"}), 200

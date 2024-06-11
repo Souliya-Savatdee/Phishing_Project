@@ -155,9 +155,9 @@ class SmtpManagments(Resource):
         data = []
         for profiles in db_smtp_profiles:
             if profiles.modified_date:
-                modifile_date = profiles.modified_date.strftime('%Y-%m-%d')
+                modified_date = profiles.modified_date.strftime('%Y-%m-%d')
             else:
-                modifile_date = None   
+                modified_date = None   
             data.append(
                 {
                     "id": profiles.smtp_id,
@@ -166,7 +166,7 @@ class SmtpManagments(Resource):
                     "host": profiles.host,
                     "username": profiles.username,
                     "password": profiles.password,
-                    "modified_date": modifile_date,
+                    "modified_date": modified_date,
                 }
             )
         
@@ -322,9 +322,9 @@ class SmtpManagment(Resource):
             )
             
         if db_smtp_profiles.modified_date:
-            modifile_date = db_smtp_profiles.modified_date.strftime('%Y-%m-%d')
+            modified_date = db_smtp_profiles.modified_date.strftime('%Y-%m-%d')
         else:
-            modifile_date = None     
+            modified_date = None     
         
         data.append(
             {
@@ -334,7 +334,7 @@ class SmtpManagment(Resource):
                 "host": db_smtp_profiles.host,
                 "username": db_smtp_profiles.username,
                 "password":  db_smtp_profiles.password,
-                "modified_date": modifile_date
+                "modified_date": modified_date
             })
             
         return make_response(

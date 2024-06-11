@@ -16,10 +16,17 @@ import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 import { NavLink, useLocation } from "react-router-dom";
 import Logo from "../assets/Logo/CEIT_hor.png";
 import { UserOutlined  } from '@ant-design/icons';
+import { useAuth } from "@/context/authProvider";
+import { jwtDecode } from "jwt-decode";
 
 const { Header, Sider, Content } = Layout;
 
 export default function DashboardLayout({ children }) {
+  const { logout } = useAuth();
+  const access_token = localStorage.getItem('access_token');
+  const decodedToken = jwtDecode(access_token);
+  const emailLogin = decodedToken.user_email;
+
   const navigate = useNavigate();
 
   const handleProfileAllClick = () => {
@@ -27,13 +34,13 @@ export default function DashboardLayout({ children }) {
   };
 
   const handleLogoutClick = () => {
-    localStorage.clear();
     setTimeout(() => {
+      logout();
       navigate("/login");
-    }, 500);
-
+    }, 300);
 
   };
+
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -156,7 +163,7 @@ export default function DashboardLayout({ children }) {
               }}
               onClick={handleProfileAllClick}
             >
-              User@gmail.com
+              {emailLogin}
             </Button>
             </div>
             <div style={{ position: "fixed" ,top:4.5, right: 15 }}>
@@ -176,7 +183,7 @@ export default function DashboardLayout({ children }) {
         </Header>
         <Content
           style={{
-            margin: "20px 16px",
+            margin: "24px 16px",
             padding: 24,
             minHeight: 280,
             background: colorBgContainer,
@@ -187,7 +194,7 @@ export default function DashboardLayout({ children }) {
             style={{
               flex: 1,
               overflowY: "auto",
-              padding: "40px 16px",
+              padding: "30px 16px",
               borderRadius: borderRadiusLG,
             }}
           >

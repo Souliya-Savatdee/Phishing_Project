@@ -2,13 +2,11 @@ import React, { useState } from "react";
 import { Typography, Card, Divider, Button, Modal } from "antd";
 import { TextField, MenuItem, Box, IconButton, Alert, AlertTitle, Collapse } from "@mui/material";
 import CloseIcon from '@mui/icons-material/Close';
-
-
-
 import { PlusOutlined } from "@ant-design/icons";
 import EnhancedTable from "@/components/data-table/UserManagementTable";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import axios from "@/middleware/axios";
+
+import useAxiosInterceptor from "@/middleware/interceptors";
 
 export default function UserManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,6 +28,7 @@ export default function UserManagementPage() {
     confirm_password: "",
     role: "",
   });
+  
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setFormData((prevData) => ({
@@ -44,7 +43,8 @@ export default function UserManagementPage() {
   const showConfirmPasswordError = confirm_passwordTouched &&!formData.confirm_password;
   const showRoleError = roleTouched &&!formData.role;
   
-
+  const axiosPrivate = useAxiosInterceptor();
+  
   const showModal = () => {
     setIsModalOpen(true);
   };
@@ -60,10 +60,12 @@ export default function UserManagementPage() {
   ];
   const access_token = localStorage.getItem("access_token");
 
+
+  //Create User
   const onSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axios.post(
+      const response = await axiosPrivate.post(
         "user/",
         formData,
         {
@@ -89,23 +91,17 @@ export default function UserManagementPage() {
       setConfirmPasswordTouched(false);
       setRoleTouched(false);
 
-
       setTimeout(() => {
         setShow(false);
         setIsModalOpen(false);
       }, 1500);
       
-      // location.reload();
-
     } catch (error) {
       setAlertSeverity("error");
       setServerResponse(error.response.data.msg);
       console.log(serverResponse);
       setShow(true)
 
-
-      //redirect to login
-      // navigate("/login", { state: { from: location }, replace: true });
     }
   };
 

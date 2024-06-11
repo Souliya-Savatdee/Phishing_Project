@@ -1,14 +1,29 @@
 import { useState } from "react";
-import {Box,IconButton, Alert, AlertTitle, Collapse, TextField} from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import {
+  Box,
+  IconButton,
+  Alert,
+  AlertTitle,
+  Collapse,
+  TextField,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import LoadingButton from "@mui/lab/LoadingButton";
 import RootLayout from "@/layouts/RootLayout";
-import Logo_ver from "../assets/Logo/CEIT_ver2.png";
-import Logo_hor from "../assets/Logo/CEIT_hor2.png";
-import axios from "@/middleware/axios";
+import Logo_ver from "@/assets/Logo/CEIT_ver2.png";
+import Logo_hor from "@/assets/Logo/CEIT_hor2.png";
 
-import { useNavigate , useLocation} from "react-router-dom";
+import axios from "@/middleware/axios";
+import { useAuth } from "@/context/authProvider";
+import { useNavigate, useLocation } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
 
 export default function LoginPage() {
+  //context
+  const { login } = useAuth();
+
+  const [loadings, setLoadings] = useState(false);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -22,46 +37,59 @@ export default function LoginPage() {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || "/";
+  // const admin_from = location.state?.from?.pathname || "/dashboard";
+  // const user_from = location.state?.from?.pathname || "/u/";
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    setLoadings(true);
 
     try {
       const response = await axios.post(
         "auth/login",
-        { email,password },
+        { email, password },
         {
           headers: {
             "Content-Type": "application/json",
-            'Access-Control-Allow-Origin': '*'
           },
         }
       );
 
-      if (response){
+      if (response) {
         const access_token = response.data.access_token;
         const refresh_token = response.data.refresh_token;
+
         console.log(access_token);
+        const decodeToken = jwtDecode(access_token);
+        const role = decodeToken.role;
+        const permissions = decodeToken.permissions;
+
+        console.log(role);
+        console.log(permissions);
 
         localStorage.setItem("access_token", `"${access_token}"`);
         localStorage.setItem("refresh_token", `"${refresh_token}"`);
 
-        console.log({ email, password });
+        login(access_token);
 
         setServerResponse("");
         setShow(false);
-        
-        navigate(from, { replace: true });
-      }
 
+        if (role === "admin") {
+          navigate("/dashboard");
+        } else {
+          navigate("/u/");
+        }
+      }
     } catch (error) {
       setServerResponse(error.response.data.msg);
       console.log(serverResponse);
       setShow(true);
-  }
+    } finally {
+      setLoadings(false);
+    }
   };
-  
+
   return (
     <RootLayout>
       <nav className="navbar">
@@ -71,17 +99,16 @@ export default function LoginPage() {
           alt="App Logo"
           className="navbar-logo"
           onContextMenu={(e) => e.preventDefault()}
-          />
+        />
       </nav>
-
 
       <form onSubmit={handleSubmit} className="login-form">
         <div className="login-card">
           {show ? (
-                    <>
-                    <Box sx={{ width: '100%' }}>
-                    <Collapse in={show}>
-                    <Alert
+            <>
+              <Box sx={{ width: "100%" }}>
+                <Collapse in={show}>
+                  <Alert
                     severity="error"
                     action={
                       <IconButton
@@ -98,12 +125,12 @@ export default function LoginPage() {
                     sx={{ mb: 2 }}
                   >
                     <AlertTitle>Error</AlertTitle>
-                     <span>{serverResponse}</span>
+                    <span>{serverResponse}</span>
                   </Alert>
-                  </Collapse>
-                  </Box>
-                    </>
-                  ) : null}
+                </Collapse>
+              </Box>
+            </>
+          ) : null}
           <img
             src={Logo_ver}
             draggable="false"
@@ -131,9 +158,15 @@ export default function LoginPage() {
               onChange={(event) => setPassword(event.target.value)}
             />
           </div>
-          <button type="submit" className="login-button">
+          <LoadingButton
+            className="login-button"
+            onClick={handleSubmit}
+            loading={loadings}
+            // variant="outlined"
+
+          >
             SIGN IN
-          </button>
+          </LoadingButton>
         </div>
       </form>
     </RootLayout>

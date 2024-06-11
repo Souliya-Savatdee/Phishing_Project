@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Button, Modal } from "antd";
 import Box from "@mui/material/Box";
@@ -24,17 +24,8 @@ import { visuallyHidden } from "@mui/utils";
 import LinearProgress from "@mui/material/LinearProgress";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
+import useAxiosInterceptor from "@/middleware/interceptors";
 
-function createData(id, name, created_date, email, status, ) {
-  return {
-    id,
-    name,
-    created_date,
-    email,
-    status,
-
-  };
-};
 
 function getButtonForRow(row) {
   if (row.status === "Error") {
@@ -79,13 +70,32 @@ function getButtonForRow(row) {
               {row.status}
           </div>
       );
+  }else if (row.status === "Failure") {
+    return (
+      <div
+          style={{
+              fontSize: "16px",
+              width: 80,
+              height: 40,
+              backgroundColor: "#e6a955",
+              color: "#FFF",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "not-allowed",
+              borderRadius: "4px",
+              pointerEvents: "none",
+          }}
+
+      >
+          {row.status}
+      </div>
+  );
   }
   return null;
 }
 
 const rows = [
-  createData(1, "Souksun", "Vunnakhone", "vunnakhone.souk@gmail.com", "Error",),
-  createData(2, "Sonenaly", "Somsuksit", "sonenaly.12@gmail.com", "Success",),
 
 ];
 
@@ -121,7 +131,7 @@ function stableSort(array, comparator) {
 const headCells = [
 
   {
-    id: "name",
+    id: "firtname",
     numeric: false,
     disablePadding: true,
     label: "Firstname",
@@ -149,13 +159,13 @@ const headCells = [
     sortable: true,
   },
 
-  {
-    id: "actions",
-    numeric: false,
-    disablePadding: false,
-    label: "",
-    sortable: false,
-  },
+  // {
+  //   id: "actions",
+  //   numeric: false,
+  //   disablePadding: false,
+  //   label: "",
+  //   sortable: false,
+  // },
 ];
 
 function EnhancedTableHead(props) {
@@ -221,6 +231,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
     setSearchTerm(value);
     onSearch(value);
   };
+
 
   return (
     <Toolbar
@@ -291,16 +302,26 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
     </Toolbar>
   );
 }
+EnhancedTableToolbar.propTypes = {
+  rowsPerPage: PropTypes.number.isRequired,
+  onRowsPerPageChange: PropTypes.func.isRequired,
+  onSearch: PropTypes.func.isRequired,
+};
+
+EnhancedTable.propTypes = {
+  data: PropTypes.array.isRequired,
+};
 
 
-export default function EnhancedTable() {
-  const [order, setOrder] = React.useState("asc");
-  const [orderBy, setOrderBy] = React.useState("created_date");
-  const [selected, setSelected] = React.useState([]);
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+export default function EnhancedTable({ data = [] }) {
+  const [order, setOrder] = useState("asc");
+  const [orderBy, setOrderBy] = useState("created_date");
+  const [selected, setSelected] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
   const [setModalOpen, setIsModalOpen1] = useState(false);
+
 
 
   const showModal1 = () => {
@@ -319,30 +340,11 @@ export default function EnhancedTable() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelected = rows.map((n) => n.id);
+      const newSelected = data.map((n) => n.id);
       setSelected(newSelected);
       return;
     }
     setSelected([]);
-  };
-
-  const handleClick = (event, id) => {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
-      );
-    }
-    setSelected(newSelected);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -360,9 +362,9 @@ export default function EnhancedTable() {
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
-  const filteredRows = rows.filter(row => {
+  const filteredRows = data.filter(row => {
     return (
-      row.name.toLowerCase().includes(searchTerm.toLowerCase())
+      row.firstname.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
 
@@ -390,7 +392,7 @@ export default function EnhancedTable() {
               orderBy={orderBy}
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
-              rowCount={rows.length}
+              rowCount={data.length}
             />
             <TableBody>
               {visibleRows.map((row, index) => {
@@ -416,12 +418,12 @@ export default function EnhancedTable() {
                       scope="row"
                       padding="none"
                     >
-                      {row.name}
+                      {row.firstname}
                     </TableCell>
                     <TableCell
                       align="left"
                     >
-                      {row.created_date}
+                      {row.lastname}
                     </TableCell>
                     <TableCell align="left" >
                       {row.email}
@@ -429,7 +431,8 @@ export default function EnhancedTable() {
                     <TableCell align="left" >
                     {getButtonForRow(row)}
                     </TableCell>
-                    <TableCell align="right">
+
+                    {/* <TableCell align="right">
                       {row.name && (
                         <>
 
@@ -445,12 +448,12 @@ export default function EnhancedTable() {
                             }} />
                         </>
                       )}
-                    </TableCell>
+                    </TableCell> */}
 
                   </TableRow>
                 );
               })}
-              {rows.length === 0 && (
+              {data.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={20} style={{ position: "relative" }}>
                     <LinearProgress style={{ position: "absolute", top: 0, left: 0, right: 0 }} />
@@ -472,7 +475,7 @@ export default function EnhancedTable() {
             "& .MuiTablePagination-displayedRows": { display: "none" }
           }}
           component="div"
-          count={rows.length}
+          count={data.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}

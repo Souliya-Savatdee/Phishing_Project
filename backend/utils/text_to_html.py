@@ -1,7 +1,7 @@
 
 import re
 import html
-from clone.format_data import escape_html
+from utils.format_data import escape_html
 
 def text_to_html(text_content):
     lines = text_content.strip().split('\n')

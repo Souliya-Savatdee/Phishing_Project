@@ -7,9 +7,9 @@ from flask_restx import Resource, fields, Namespace
 from flask_jwt_extended import get_jwt, jwt_required
 
 from api.models import db, Group, User, Smtp, Template, Page, Campaign, Result
-from utils.mail_sender import send_emails 
+from utils.mail_sender import send_emails
 from utils.xlsx import create_excel_file
-from utils.file_path_excel import file_path_excel
+from utils.file_path_excel import file_path_excel, update_excel_file
 
 from constans.http_status_code import (
     HTTP_200_OK,
@@ -24,7 +24,7 @@ campaign_ns = Namespace("campaign", description="Campaign management operations"
 campaign_model = campaign_ns.model(
     "Template",
     {
-        "cam_id" : fields.Integer(),
+        "cam_id": fields.Integer(),
         "cam_name": fields.String(),
         "status": fields.String(),
         "created_date": fields.DateTime(),
@@ -39,6 +39,7 @@ campaign_model = campaign_ns.model(
     },
 )
 
+
 def check_admin_permission():
     jwt = get_jwt()
     if jwt["role"] != "admin":
@@ -52,11 +53,10 @@ def validate_strip(profile_name, name):
         return make_response(
             jsonify({"msg": f"No {name} provided"}), HTTP_400_BAD_REQUEST
         )
-        
+
 
 @campaign_ns.route("/")
 class CampaignManagments(Resource):
-
 
     # @jwt_required()
     @campaign_ns.expect(campaign_model)
@@ -64,38 +64,43 @@ class CampaignManagments(Resource):
         # permission_check = check_admin_permission()
         # if permission_check:
         #     return permission_check
-        
+
         data = request.get_json()
         cam_name = data.get("cam_name")
         # status = data.get("status")
-        user_id = data.get("user_id")           #user belong to (not mean that user create this campaign)
+        user_id = data.get(
+            "user_id"
+        )               # user belong to (not mean that user create this campaign)
         group_id = data.get("group_id")
         page_id = data.get("page_id")
         temp_id = data.get("temp_id")
         smtp_id = data.get("smtp_id")
-        send_data = data.get("send_data")
-        # launch_date = data.get("launch_date")
         completed_date = data.get("completed_date")
-        
-        
+
         # validate empty fields
-        
+
         validate_user = validate_strip(user_id, "user belong")
         if validate_user:
-            return validate_user   
-        
+            return validate_user
+
         validate_completed = validate_strip(completed_date, "completed date")
         if validate_completed:
-            return validate_completed 
-            
+            return validate_completed
+
         validate_name = validate_strip(cam_name, "campaign name")
         if validate_name:
-            return validate_name    
+            return validate_name
         
-        db_User = db.session.query(User).filter_by(id = user_id).first()
+        db_campaign = db.session.query(Campaign).filter_by(cam_name = cam_name).first()
+        if db_campaign:
+            return make_response(
+                jsonify({"msg": "Campaign name already taken"}), HTTP_409_CONFLICT
+            )
+
+        db_User = db.session.query(User).filter_by(id=user_id).first()
         user_belongs_to = db_User.email
-        
-        db_group = db.session.query(Group).filter_by(id = group_id).first()
+
+        db_group = db.session.query(Group).filter_by(id=group_id).first()
         targets = []
         group_name = db_group.groupname
         for target in db_group.target:
@@ -104,15 +109,14 @@ class CampaignManagments(Resource):
                     "email": target.email,
                     "user_id": target.id,
                     "first_name": target.firstname,
-                    "last_name": target.lastname
+                    "last_name": target.lastname,
                 }
             )
-        
-        
-        db_page = db.session.query(Page).filter_by(page_id = page_id).first()
+
+        db_page = db.session.query(Page).filter_by(page_id=page_id).first()
         page_path = db_page.path
-        
-        db_template = db.session.query(Template).filter_by(temp_id = temp_id).first()
+
+        db_template = db.session.query(Template).filter_by(temp_id=temp_id).first()
         subject = db_template.temp_subject
         text = db_template.temp_text
         html = db_template.temp_html
@@ -120,40 +124,36 @@ class CampaignManagments(Resource):
             email_template = html
         else:
             email_template = text
-        
-        db_smtp = db.session.query(Smtp).filter_by(smtp_id = smtp_id).first()
+
+        db_smtp = db.session.query(Smtp).filter_by(smtp_id=smtp_id).first()
         smtp_username = db_smtp.username
-        smtp_password =  db_smtp.password
+        smtp_password = db_smtp.password
         smtp_sender = db_smtp.from_address
-        smtp_host, smtp_port = (db_smtp.host).split(':')
-        
-        
+        smtp_host, smtp_port = (db_smtp.host).split(":")
+
         current_date = datetime.now()
         cam_id = random.randint(100, 10000)
-        
-        #total target
+
+        # total target
         total_targets = len(targets)
         status_result = f"{total_targets} | 0 | 0 | 0 | 0 | 0 "
-        
+
         new_campaign = Campaign(
-            cam_id = cam_id,
-            cam_name = cam_name, 
-            status = "In Progress",
-            user_id = user_id,
-            group_id = group_id,
-            page_id = page_id,
-            temp_id = temp_id,
-            smtp_id = smtp_id,
-            launch_date = current_date,
-            completed_date = completed_date,
-            created_date = current_date,
-            send_data = send_data,
+            cam_id=cam_id,
+            cam_name=cam_name,
+            status="In Progress",
+            user_id=user_id,
+            group_id=group_id,
+            page_id=page_id,
+            temp_id=temp_id,
+            smtp_id=smtp_id,
+            launch_date=current_date,
+            completed_date=completed_date,
+            created_date=current_date,
+            send_data=current_date,
         )
         new_resualt = Result(
-
-                email = "admin@admin.com",
-                cam_id = cam_id,
-                status = status_result
+            email = user_belongs_to, cam_id=cam_id, status=status_result
         )
 
         db.session.add(new_resualt)
@@ -161,101 +161,108 @@ class CampaignManagments(Resource):
         db.session.commit()
         db_group.cam_id = cam_id
         db.session.commit()
-        
-
 
         file_path = file_path_excel(cam_name)
-        
-        create_excel_file(file_path, targets, user_belongs_to, cam_name)
-        send_emails(subject, smtp_sender, smtp_password, smtp_host, smtp_port, targets, email_template, file_path)
-        
+
+        # create_excel_file(file_path, targets, user_belongs_to, cam_name)
+        # send_emails(
+        #     subject,
+        #     smtp_sender,
+        #     smtp_password,
+        #     smtp_host,
+        #     smtp_port,
+        #     targets,
+        #     email_template,
+        #     file_path,
+        # )
+
         return make_response(
             jsonify({"msg": "Campaign created successfully "}), HTTP_201_CREATED
         )
-        
-        
-        
-        
-        
+
     # @jwt_required()
     def get(self):
         # permission_check = check_admin_permission()
         # if permission_check:
         #     return permission_check
-        
+
         db_campaign = db.session.query(Campaign).all()
         data = []
         for campaign in db_campaign:
-            if campaign.modified_date:
-                launch_date = campaign.launch_date.strftime('%Y-%m-%d')
+            if campaign.launch_date:
+                launch_date = campaign.launch_date.strftime("%Y-%m-%d")
             else:
                 launch_date = None
-        data.append(
-            {
-                "cam_id" : campaign.cam_id,
-                "cam_name": campaign.cam_name,
-                "launch_date": launch_date,
-                "status": campaign.status
-            }
-        )        
-        
-        return make_response(jsonify({"campaign":data}), HTTP_200_OK)
-            
-            
+            data.append(
+                {
+                    "cam_id": campaign.cam_id,
+                    "cam_name": campaign.cam_name,
+                    "launch_date": launch_date,
+                    "status": campaign.status,
+                }
+            )
+
+        return make_response(jsonify({"campaign": data}), HTTP_200_OK)
+
+
 @campaign_ns.route("/<int:id>")
 class CampaignManagment(Resource):
     # @jwt_required()
-    
+
     def delete(self, id):
         # permission_check = check_admin_permission()
         # if permission_check:
         #     return permission_check
-        
-        db_campaign = db.session.query(Campaign).filter_by(cam_id = id).first()
+
+        db_campaign = db.session.query(Campaign).filter_by(cam_id=id).first()
         if not db_campaign:
             return make_response(
                 jsonify({"msg": "Campaign not found"}), HTTP_404_NOT_FOUND
             )
-            
+
         cam_name = db_campaign.cam_name
 
         if db_campaign.group:
             db_campaign.group.cam_id = None
         db.session.commit()
-        
+
         db.session.delete(db_campaign)
         db.session.commit()
-        
+
         # remove file result of campaign
-        base_dir = Path(__file__).resolve().parent.parent  
-        file_path = base_dir / 'result' / f"{cam_name}_result.xlsx"
-        os.remove(file_path)
-        
+        base_dir = Path(__file__).resolve().parent.parent
+        file_path = base_dir / "result" / f"{cam_name}_result.xlsx"
+        try:
+            os.remove(file_path)
+        except FileNotFoundError:
+        # File does not exist, no need to remove it
+            pass
+
+
         return make_response(
             jsonify({"msg": "Campaign deleted successfully "}), HTTP_200_OK
         )
-        
-        
-        
 
-@campaign_ns.route('/dashboard/')
+
+@campaign_ns.route("/dashboard/")
 class DashboardCampaign(Resource):
     def get(self):
         db_campaign = db.session.query(Campaign).all()
         data = []
-        
+
         for campaign in db_campaign:
             for result in campaign.results:
                 status = result.status
                 status_list = [int(num.strip()) for num in status.split("|")]
-                
+
                 if result.modified_date:
                     modified_date = result.modified_date.strftime("%Y-%m-%d")
                 else:
                     modified_date = None
-                
+
                 data.append(
                     {
+                        "cam_name": campaign.cam_name,
                         "cam_id": result.cam_id,
                         "email": result.email,
                         "status": {
@@ -267,33 +274,70 @@ class DashboardCampaign(Resource):
                             "error": status_list[5],
                         },
                         "modified_date": modified_date,
-                        "create_date": campaign.created_date.strftime("%Y-%m-%d")
+                        "create_date": campaign.created_date.strftime("%Y-%m-%d"),
                     }
                 )
-        
+
         return make_response(jsonify({"result": data}), HTTP_200_OK)
 
 
+@campaign_ns.route("/alldata")
+class AllData(Resource):
+    def get(self):
 
-@campaign_ns.route('/finish_campaign/<int:id>')
+        db_users = db.session.query(User).all()
+        db_groups = db.session.query(Group).all()
+        db_smtps = db.session.query(Smtp).all()
+        db_templates = db.session.query(Template).all()
+        db_pages = db.session.query(Page).all()
 
+        users = [{"id": str(user.id), "email": user.email} for user in db_users]
+        groups = [{"id": group.id, "groupname": group.groupname} for group in db_groups]
+        smtps = [{"smtp_id": smtp.smtp_id, "name": smtp.name} for smtp in db_smtps]
+        templates = [
+            {"temp_id": template.temp_id, "temp_name": template.temp_name}
+            for template in db_templates
+        ]
+        pages = [
+            {"page_id": page.page_id, "path": Path(page.path).stem}
+            for page in db_pages
+        ]
+
+        response = {
+            "users": users,
+            "groups": groups,
+            "smtps": smtps,
+            "templates": templates,
+            "pages": pages,
+        }
+        return make_response(jsonify(response), HTTP_200_OK)
+
+
+
+@campaign_ns.route("/finish_campaign/<int:id>")
 class FinishCampaign(Resource):
     def get(self, id):
-        db_campaign = db.session.query(Campaign).filter_by(cam_id = id).first()
+        db_campaign = db.session.query(Campaign).filter_by(cam_id=id).first()
         if not db_campaign:
             return make_response(
                 jsonify({"msg": "Campaign not found"}), HTTP_404_NOT_FOUND
             )
-        
+        cam_name = db_campaign.cam_name
         db_campaign.status = "Finished"
         db_campaign.completed_date = datetime.now()
-        
+
         for target in db_campaign.group.target:
-            if target.status is None or (isinstance(target.status, str) and target.status.strip() == ""):
+            if target.status is None or (
+                isinstance(target.status, str) and target.status.strip() == ""
+            ):
                 target.status = "Failure"
-        
+        groupId = db_campaign.group_id
+        db_group = db.session.query(Group).filter_by(group_id = groupId).first()
+        db_group.cam_id = None
         db.session.commit()
-        
+        file_path = file_path_excel(cam_name)
+        update_excel_file(file_path)
+
         return make_response(
             jsonify({"msg": "Campaign finished successfully "}), HTTP_200_OK
         )
