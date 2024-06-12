@@ -337,31 +337,31 @@ export default function EnhancedTable({ tableData }) {
     getData();
   }, []);
 
-    const getData = async () => {
-      try {
-        const response = await axiosPrivate.get("email_template/", {
-          headers: {
-            Authorization: `Bearer ${JSON.parse(access_token)}`,
-          },
-        });
-        const data = response.data;
-        const formattedData = data.email_template.map((email_template, index) =>
-          createData(
-            index + 1,
-            email_template.temp_name,
-            email_template.modified_date || "N/A",
-            email_template.subject,
-            email_template.text_data,
-            email_template.html_data,
-            email_template.id
-          )
-        );
-        console.log(formattedData);
-        setUsersData(formattedData);
-      } catch (error) {
-        console.error("Error fetching email template data:", error);
-      }
-    };
+  const getData = async () => {
+    try {
+      const response = await axiosPrivate.get("email_template/", {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
+      });
+      const data = response.data;
+      const formattedData = data.email_template.map((email_template, index) =>
+        createData(
+          index + 1,
+          email_template.temp_name,
+          email_template.modified_date || "N/A",
+          email_template.subject,
+          email_template.text_data,
+          email_template.html_data,
+          email_template.id
+        )
+      );
+      console.log(formattedData);
+      setUsersData(formattedData);
+    } catch (error) {
+      console.error("Error fetching email template data:", error);
+    }
+  };
 
   const handleInputType = (type) => {
     setInputType(type);
@@ -382,7 +382,6 @@ export default function EnhancedTable({ tableData }) {
     }
     setSelected([]);
   };
-
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -509,8 +508,9 @@ export default function EnhancedTable({ tableData }) {
         setModalOpen_Delete(false);
       }
     } catch (error) {
-      console.error("Error deleting landing page:", error);
-      console.log(error);
+      setAlertSeverity("error");
+      setServerResponse("This Email Template is working, can not be deleted");
+      setShow(true);
     }
     console.log(selectedID);
   };
@@ -807,6 +807,35 @@ export default function EnhancedTable({ tableData }) {
             </>
           )}
         >
+          {show ? (
+            <>
+              <Box sx={{ width: "100%" }}>
+                <Collapse in={show}>
+                  <Alert
+                    severity={alertSeverity}
+                    action={
+                      <IconButton
+                        aria-label="close"
+                        color="inherit"
+                        size="small"
+                        onClick={() => {
+                          setShow(false);
+                        }}
+                      >
+                        <CloseIcon fontSize="inherit" />
+                      </IconButton>
+                    }
+                    sx={{ mb: 2 }}
+                  >
+                    <AlertTitle>
+                      {alertSeverity === "success" ? "Success" : "Error"}
+                    </AlertTitle>
+                    <span>{serverResponse}</span>
+                  </Alert>
+                </Collapse>
+              </Box>
+            </>
+          ) : null}
           <Typography>Are you sure you want to delete this item?</Typography>
         </Modal>
       </Paper>

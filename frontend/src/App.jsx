@@ -12,7 +12,7 @@ import LoginPage from "@/pages/LoginPage";
 import UDashboardPage from "@/pages/uPages/UDashboardPage";
 import UCampaignsPage from "@/pages/uPages/UCampaignsPage";
 import URCampaignsPage from "@/pages/uPages/URCampaignsPage";
-
+import UUserManagementPage from "@/pages/uPages/UUserManagementPage";
 
 
 import NotFoundPage from "@/pages/NotFoundPage";
@@ -58,10 +58,10 @@ export default function App() {
               }
             >
               <Route path="/u/" element={<UDashboardPage />} />
-
+              <Route path="/u/user-management" element={<UUserManagementPage />} />
               <Route path="/u/dashboard" element={<UDashboardPage />} />
               <Route path="/u/campaigns" element={<UCampaignsPage />} />
-              <Route path="/u/campaigns/id" element={<URCampaignsPage />} />
+              <Route path="/u/campaigns/result/:cam_id" element={<URCampaignsPage />} />
             </Route>
           </Route>
           <Route path="/login" element={<LoginPage />} />

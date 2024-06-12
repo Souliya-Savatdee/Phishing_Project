@@ -61,6 +61,7 @@ class ResultCampaign(Resource):
         cam_Data.append(
             {
                 "cam_name": db_campaign.cam_name,
+                "user_belong": db_campaign.user.email,
                 "status": {
                     "total": status_list[0],
                     "send_mail": status_list[1],

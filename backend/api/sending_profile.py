@@ -60,6 +60,19 @@ def validate_strip(profile_name, name):
             jsonify({"msg": f"No {name} provided"}), HTTP_400_BAD_REQUEST
         )
 
+def validate_host(host):
+    pattern = r'^smtp\.example\.com:(587|25)$'
+    if re.match(pattern, host):
+        return True
+    
+    # Check if host includes common email providers
+    common_providers = ['gmail', 'live', 'office365']
+    for provider in common_providers:
+        if provider in host:
+            return True
+    
+    return False
+
 
 @sending_prolfile_ns.route("/")
 class SmtpManagments(Resource):
@@ -88,9 +101,9 @@ class SmtpManagments(Resource):
         if validate_from:
             return validate_from
 
-        validate_host = validate_strip(host, "host")
-        if validate_host:
-            return validate_host
+        validate_host_em = validate_strip(host, "host")
+        if validate_host_em:
+            return validate_host_em
 
         validate_username = validate_strip(username, "username")
         if validate_username:
@@ -99,6 +112,12 @@ class SmtpManagments(Resource):
         validate_password = validate_strip(password, "password")
         if validate_password:
             return validate_password
+        
+        validate_host_valid = validate_host(host)
+        if not validate_host_valid:
+            return make_response(
+                jsonify({"msg": "Invalid host smtp address"}), HTTP_400_BAD_REQUEST
+            )
 
         # validate format
         if not validate_email(from_address):
@@ -217,6 +236,12 @@ class SmtpManagment(Resource):
         validate_name = validate_strip(pro_name, "profile name")
         if validate_name:
             return validate_name
+        
+        validate_host_valid = validate_host(host)
+        if not validate_host_valid:
+            return make_response(
+                jsonify({"msg": "Invalid host smtp address"}), HTTP_400_BAD_REQUEST
+            )
 
         if from_address.strip() == "" and host.strip() == "" and username.strip() == "" and password.strip() == "":
             db_profile = (
@@ -245,9 +270,9 @@ class SmtpManagment(Resource):
         if validate_from:
             return validate_from
 
-        validate_host = validate_strip(host, "host")
-        if validate_host:
-            return validate_host
+        validate_host_em = validate_strip(host, "host")
+        if validate_host_em:
+            return validate_host_em
 
         validate_username = validate_strip(username, "username")
         if validate_username:

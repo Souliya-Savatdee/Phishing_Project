@@ -12,8 +12,8 @@ import EmailOpenDonut from "@/components/charts/donut-charts/emailOpenDonut";
 import ClickedLinkDonut from "@/components/charts/donut-charts/ClickedLinkDonut";
 import SummittedDataDonut from "@/components/charts/donut-charts/SummittedDataDonut";
 import Linecharts from "@/components/charts/line-charts/Linecharts";
-import EnhancedTable from "@/components/data-table/RcampaingsTable";
-// import EnhancedTable from "@/components/data-table/RcampaignsTable2";
+// import EnhancedTable from "@/components/data-table/RcampaingsTable";
+import EnhancedTable from "@/components/data-table/RcampaignsTable2";
 import useAxiosInterceptor from "@/middleware/interceptors";
 
 export default function RCampaignsPage() {
@@ -22,6 +22,7 @@ export default function RCampaignsPage() {
   const [isModalOpenFinish, setIsModalOpenFinish] = useState(false);
   const [isFinish, setIsFinished] = useState("");
 
+  const [userBelong, setUserBelong] = useState("");
   const [target, setTarget] = useState([]);
   const [cam_name, setCamName] = useState("");
   const navigate = useNavigate();
@@ -74,11 +75,13 @@ export default function RCampaignsPage() {
       });
 
       const data = response.data;
+      const user = data.camData[0].user_belong;
+      setUserBelong(`- (${user})`);
 
       const target_list = data.targetData.map((target) => ({
         id: target.Amount,
         firstname: target.Firstname,
-        lastname: target.Lastname, 
+        lastname: target.Lastname,
         email: target.Email,
         sent: target.Error != "✗" ? "✓" : "✗",
         open_email: target["Open email"],
@@ -91,15 +94,14 @@ export default function RCampaignsPage() {
       const cam_Data = data.camData[0];
 
       setCamName(cam_Data.cam_name);
+
       setTotal(cam_Data.status.total);
       setEmailsent(cam_Data.status.send_mail);
       setEmailopened(cam_Data.status.open);
       setClickedlink(cam_Data.status.click);
       setSummitdata(cam_Data.status.submit);
-
-
     } catch (error) {
-      if (error.response.status === 404){
+      if (error.response.status === 404) {
         console.log(error.response.data.msg);
         navigate("/campaigns");
       }
@@ -109,27 +111,24 @@ export default function RCampaignsPage() {
   //Download Campaign File XLSX
   const handleExportXLSX = async () => {
     try {
-      const response = await axiosPrivate.get(
-        `result/download/${cam_id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${JSON.parse(access_token)}`,
-          },
-          responseType: 'blob',
-        }
-      );
+      const response = await axiosPrivate.get(`result/download/${cam_id}`, {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
+        responseType: "blob",
+      });
       if (response) {
-        
-        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        const blob = new Blob([response.data], {
+          type: response.headers["content-type"],
+        });
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `${cam_name}_result.xlsx`; 
+        a.download = `${cam_name}_result.xlsx`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-
 
         console.log("ExportXLSX successful!");
       }
@@ -142,14 +141,11 @@ export default function RCampaignsPage() {
   //Delete Campaign
   const handleDelete = async () => {
     try {
-      const response = await axiosPrivate.delete(
-        `campaign/${cam_id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${JSON.parse(access_token)}`,
-          },
-        }
-      );
+      const response = await axiosPrivate.delete(`campaign/${cam_id}`, {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
+      });
       if (response) {
         console.log("Delete successful!");
 
@@ -163,7 +159,26 @@ export default function RCampaignsPage() {
     }
   };
 
+  //Finish Campaign
+  const handleFinish = async () => {
+    try {
+      const response = await axiosPrivate.get(`finish_campaign/${cam_id}`, {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
+      });
+      if (response) {
+        console.log("Set Finish Campaign successful!");
+        setIsFinished("- (Finished Campaign)");
 
+        getDataTargetResult();
+        showModalFinish(false);
+      }
+    } catch (error) {
+      console.error("Error Set Finish Campaign:", error);
+      console.log(error);
+    }
+  };
 
   return (
     <>
@@ -171,8 +186,8 @@ export default function RCampaignsPage() {
         <Card
           title={
             <Typography.Title level={1}>
-              Results of Campaign
-              <Divider />
+              {`Results of Campaign ${userBelong}`}
+              <Divider style={{ marginBottom: "0px" }} />
             </Typography.Title>
           }
           bordered={false}
@@ -248,28 +263,44 @@ export default function RCampaignsPage() {
             >
               Refresh
             </Button>
+            <Button
+              icon={<CheckCircleIcon fontSize="small" />}
+              style={{
+                fontSize: "14px",
+                width: 120,
+                height: 40,
+                backgroundColor: "rgba(67,190,126,255)",
+                color: "#FFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onClick={showModalFinish}
+            >
+              Finish
+            </Button>
+          </div>
+          <Divider style={{ marginBottom: "0px" }} />
 
-          </div>
-          <Divider />
           <Typography.Title level={1}>
-            {`${cam_name} ${isFinish}` }
-            <Divider />
+            {`${cam_name} ${isFinish}`}
+            <Divider style={{ marginBottom: "0px" }} />
           </Typography.Title>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+          {/* <div style={{ display: "flex", justifyContent: "space-between" }}>
             <Linecharts />
-          </div>
+          </div> */}
           <div className="dashboard-container">
-            <EmailSentDonut  />
-            <EmailOpenDonut  />
-            <ClickedLinkDonut  />
-            <SummittedDataDonut  />
+            <EmailSentDonut total={total} emailsent={emailsent} />
+            <EmailOpenDonut total={total} emailopened={emailopened} />
+            <ClickedLinkDonut total={total} clickedlink={clickedlink} />
+            <SummittedDataDonut total={total} submitted={summitdata} />
           </div>
           <div style={{ paddingTop: "10px", paddingBottom: "10px" }}>
             <Typography.Title level={1}>Details</Typography.Title>
           </div>
           <div style={{ marginTop: "10px" }}>
+            {/* <EnhancedTable data={target || []} /> */}
             <EnhancedTable data={target || []} />
-
           </div>
         </Card>
         <Modal

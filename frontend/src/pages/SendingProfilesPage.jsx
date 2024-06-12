@@ -251,7 +251,7 @@ export default function SendingProfilesPage() {
                 label="Host"
                 name="host"
                 variant="outlined"
-                placeholder="smtp.example.com:25"
+                placeholder="smtp.example.com:587"
                 value={formData.host}
                 onBlur={() => setHostTouched(true)}
                 onChange={handleInputChange}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   MenuFoldOutlined,
@@ -93,7 +93,12 @@ export default function UDashboardLayout({ children }) {
               key: "/u/campaigns",
               icon: <BulbOutlined />,
               label: <NavLink to="/u/campaigns">Campaigns</NavLink>,
-            }
+            },
+            {
+              key: "/u/user-management",
+              icon: <SettingOutlined />,
+              label: <NavLink to="/u/user-management">User Management</NavLink>,
+            },
           ]}
         />
       </Sider>

@@ -467,7 +467,9 @@ export default function EnhancedTable() {
         getData();
       }
     } catch (error) {
-      console.error("error", error);
+      setAlertSeverity("error");
+      setServerResponse("This smtp profile is working, can not be deleted");
+      setShow(true);
     }
   };
 
@@ -746,6 +748,35 @@ export default function EnhancedTable() {
             </>
           )}
         >
+          {show ? (
+            <>
+              <Box sx={{ width: "100%" }}>
+                <Collapse in={show}>
+                  <Alert
+                    severity={alertSeverity}
+                    action={
+                      <IconButton
+                        aria-label="close"
+                        color="inherit"
+                        size="small"
+                        onClick={() => {
+                          setShow(false);
+                        }}
+                      >
+                        <CloseIcon fontSize="inherit" />
+                      </IconButton>
+                    }
+                    sx={{ mb: 2 }}
+                  >
+                    <AlertTitle>
+                      {alertSeverity === "success" ? "Success" : "Error"}
+                    </AlertTitle>
+                    <span>{serverResponse}</span>
+                  </Alert>
+                </Collapse>
+              </Box>
+            </>
+          ) : null}
           <Typography>Are you sure you want to delete this item?</Typography>
         </Modal>
       </Paper>

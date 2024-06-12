@@ -313,8 +313,6 @@ export default function EnhancedTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const [isModalOpen, setisModalOpen] = useState(false);
   const [setModalOpen, setModalOpen_Delete] = useState(false);
 
   const [rows, setUsersData] = useState([]);
@@ -323,6 +321,7 @@ export default function EnhancedTable() {
   const axiosPrivate = useAxiosInterceptor();
   const access_token = localStorage.getItem("access_token") || " ";
 
+  //Get Data
   useEffect(() => {
     getData();
   }, []);
@@ -395,6 +394,8 @@ export default function EnhancedTable() {
   ).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
 
+
+  //View Result
   const handleViewResult = (cam_id) => {
 
     console.log(cam_id)
@@ -524,7 +525,7 @@ export default function EnhancedTable() {
                         color: "#c9c9c9",
                       }}
                     >
-                      This may take a few minutes to complete
+                      This might take a while to complete
                     </Typography>
                   </TableCell>
                 </TableRow>

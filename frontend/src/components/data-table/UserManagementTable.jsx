@@ -443,7 +443,9 @@ export default function EnhancedTable() {
         getData();
       }
     } catch (error) {
-      console.error("error", error);
+      setAlertSeverity("error");
+      setServerResponse("This Email Template is working, can not be deleted");
+      setShow(true);
     }
   };
 

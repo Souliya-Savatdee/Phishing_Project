@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import UDashboardLayout from "@/layouts/UDashboardLayout";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Divider, Button, Modal, Card, Typography } from "antd";
 import Linecharts from "@/components/charts/line-charts/Linecharts";
-import EnhancedTable from "@/components/data-table/RcampaingsTable";
+// import EnhancedTable from "@/components/data-table/RcampaingsTable";
+import EnhancedTable from "@/components/data-table/URcampaignsTable";
+
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AssessmentIcon from "@mui/icons-material/Assessment";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -12,35 +14,156 @@ import EmailSentDonut from "@/components/charts/donut-charts/emailSentDonut";
 import EmailOpenDonut from "@/components/charts/donut-charts/emailOpenDonut";
 import ClickedLinkDonut from "@/components/charts/donut-charts/ClickedLinkDonut";
 import SummittedDataDonut from "@/components/charts/donut-charts/SummittedDataDonut";
+import useAxiosInterceptor from "@/middleware/interceptors";
 
 export default function URCampaignsPage() {
   const [refreshing, setRefreshing] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
+
+  const [userBelong, setUserBelong] = useState("");
+  const [target, setTarget] = useState([]);
+  const [cam_name, setCamName] = useState("");
   const navigate = useNavigate();
 
   const handlecampaignsClick = () => {
     navigate("/u/campaigns");
   };
+  const { cam_id } = useParams();
 
-  const emailsent = 30;
-  const emailopened = 50;
-  const clickedlink = 50;
-  const summitdata = 70;
+  const [total, setTotal] = useState();
+  const [emailsent, setEmailsent] = useState();
+  const [emailopened, setEmailopened] = useState();
+  const [clickedlink, setClickedlink] = useState();
+  const [summitdata, setSummitdata] = useState();
 
-  const showModal = () => {
-    setIsModalOpen(true);
+
+  const showModalFinish = () => {
+    setIsModalOpenFinish(true);
   };
 
   const handleCancel = () => {
-    setIsModalOpen(false);
+    setIsModalOpenDelete(false);
+    setIsModalOpenFinish(false);
   };
 
   const handleRefresh = () => {
     setRefreshing(true);
+    getDataTargetResult();
     setTimeout(() => {
       setRefreshing(false);
     }, 500);
   };
+
+  const axiosPrivate = useAxiosInterceptor();
+  const access_token = localStorage.getItem("access_token") || " ";
+
+  useEffect(() => {
+    getDataTargetResult();
+  }, []);
+
+  const getDataTargetResult = async () => {
+    setTarget([]);
+    try {
+      const response = await axiosPrivate.get(`result/${cam_id}`, {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
+      });
+
+      const data = response.data;
+      const user = data.camData[0].user_belong
+      setUserBelong(`- (${user})`)
+
+      const target_list = data.targetData.map((target) => ({
+        id: target.Amount,
+        firstname: target.Firstname,
+        lastname: target.Lastname, 
+        email: target.Email,
+        sent: target.Error != "✗" ? "✓" : "✗",
+        open_email: target["Open email"],
+        click_link: target["Click link"],
+        submit_data: target["Submit data"],
+      }));
+
+      setTarget(target_list);
+
+      const cam_Data = data.camData[0];
+
+      setCamName(cam_Data.cam_name);
+      
+      setTotal(cam_Data.status.total);
+      setEmailsent(cam_Data.status.send_mail);
+      setEmailopened(cam_Data.status.open);
+      setClickedlink(cam_Data.status.click);
+      setSummitdata(cam_Data.status.submit);
+
+
+    } catch (error) {
+      if (error.response.status === 404){
+        console.log(error.response.data.msg);
+        navigate("/campaigns");
+      }
+    }
+  };
+
+  //Download Campaign File XLSX
+  const handleExportXLSX = async () => {
+    try {
+      const response = await axiosPrivate.get(
+        `result/download/${cam_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${JSON.parse(access_token)}`,
+          },
+          responseType: 'blob',
+        }
+      );
+      if (response) {
+        
+        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${cam_name}_result.xlsx`; 
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+
+        console.log("ExportXLSX successful!");
+      }
+    } catch (error) {
+      console.error("Error ExportXLSX:", error);
+      console.log(error);
+    }
+  };
+
+  //Finish Campaign 
+  const handleFinish = async () => {
+    try {
+      const response = await axiosPrivate.get(
+        `finish_campaign/${cam_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${JSON.parse(access_token)}`,
+          },
+        }
+      );
+      if (response) {
+        console.log("Set Finish Campaign successful!");
+        setIsFinished("- (Finished Campaign)");
+
+        getDataTargetResult();
+        showModalFinish(false);
+      }
+    } catch (error) {
+      console.error("Error Set Finish Campaign:", error);
+      console.log(error);
+    }
+  };
+
+
 
   return (
     <>
@@ -49,7 +172,8 @@ export default function URCampaignsPage() {
           title={
             <Typography.Title level={1}>
               Results of Campaign
-              <Divider />
+              <Divider style={{marginBottom:"0px"}} />
+
             </Typography.Title>
           }
           bordered={false}
@@ -92,22 +216,6 @@ export default function URCampaignsPage() {
               Export As CSV
             </Button>
             <Button
-              icon={<DeleteIcon fontSize="small" />}
-              style={{
-                fontSize: "14px",
-                width: 120,
-                height: 40,
-                backgroundColor: "#ff5252",
-                color: "#FFF",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-              onClick={showModal}
-            >
-              Delete
-            </Button>
-            <Button
               icon={<AutorenewIcon fontSize="small" />}
               style={{
                 fontSize: "14px",
@@ -125,14 +233,15 @@ export default function URCampaignsPage() {
               Refresh
             </Button>
           </div>
-          <Divider />
+          <Divider style={{marginBottom:"0px"}} />
+
           <Typography.Title level={1}>
             Sales Branch
             <Divider style={{ marginBottom: "0px" }} />
           </Typography.Title>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+          {/* <div style={{ display: "flex", justifyContent: "space-between" }}>
             <Linecharts />
-          </div>
+          </div> */}
           <div style={{ display: "flex" }}>
             <EmailSentDonut emailsent={emailsent} />
             <EmailOpenDonut emailopened={emailopened} />
@@ -146,38 +255,6 @@ export default function URCampaignsPage() {
             <EnhancedTable />
           </div>
         </Card>
-        <Modal
-          title="Delete Item"
-          centered
-          open={isModalOpen}
-          onCancel={handleCancel}
-          cancelButtonProps={{
-            style: {
-              backgroundColor: "#ff5252",
-              color: "#FFF",
-              fontSize: "13px",
-              height: "36px",
-            },
-          }}
-          cancelText="CANCEL"
-          footer={(_, { CancelBtn }) => (
-            <>
-              <CancelBtn />
-              <Button
-                style={{
-                  borderColor: "rgba(67,190,126,255)",
-                  color: "rgba(67,190,126,255)",
-                  fontSize: "13px",
-                  height: "36px",
-                }}
-              >
-                OK
-              </Button>
-            </>
-          )}
-        >
-          <Typography>Are you sure you want to delete this item?</Typography>
-        </Modal>
       </UDashboardLayout>
     </>
   );

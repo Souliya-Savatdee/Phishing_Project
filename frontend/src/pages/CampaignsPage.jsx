@@ -122,15 +122,15 @@ export default function CampaignsPage() {
   };
 
   const handleCancel = () => {
-    setFormData({
-      cam_name: "",
-      user_id: "",
-      group_id: "",
-      page_id: "",
-      temp_id: "",
-      smtp_id: "",
-      completed_date: "",
-    });
+    // setFormData({
+    //   cam_name: "",
+    //   user_id: "",
+    //   group_id: "",
+    //   page_id: "",
+    //   temp_id: "",
+    //   smtp_id: "",
+    //   completed_date: "",
+    // });
     setEndDate(null);
 
     setNameTouched(false);

@@ -1,7 +1,11 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
-import PropTypes from "prop-types";
+import React, { useState, useEffect } from "react";
 import {
+  TextField,
   Box,
+  IconButton,
+  Alert,
+  AlertTitle,
+  Collapse,
   Table,
   TableBody,
   TableCell,
@@ -14,72 +18,25 @@ import {
   Typography,
   Paper,
   LinearProgress,
-  TextField,
-  Button as Button_m,
-  MenuItem,
-  IconButton,
-  Alert,
-  AlertTitle,
-  Collapse,
 } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
 import CloseIcon from "@mui/icons-material/Close";
-import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
-
-// Ant Design components
 import { Button, Modal, Divider } from "antd";
-
-// Jodit Editor
-import JoditEditor from "jodit-react";
-
-// Custom hooks
 import useAxiosInterceptor from "@/middleware/interceptors";
+import PropTypes from "prop-types";
+import { jwtDecode } from "jwt-decode";
 
-function createData(
-  id,
-  name,
-  last_modified_date,
-  url,
-  redirectURL,
-  html_data,
-  page_id
-) {
+function createData(id, name, role, last_modified_date, user_id) {
   return {
     id,
     name,
+    role,
     last_modified_date,
-    url,
-    redirectURL,
-    html_data,
-    page_id,
+    user_id,
   };
 }
-
-const headCells = [
-  {
-    id: "name",
-    numeric: false,
-    disablePadding: true,
-    label: "Name",
-    sortable: false,
-  },
-  {
-    id: "last_modified_date",
-    numeric: true,
-    disablePadding: false,
-    label: "Last Modified Date",
-    sortable: true,
-  },
-  {
-    id: "actions",
-    numeric: false,
-    disablePadding: false,
-    label: "",
-    sortable: false,
-  },
-];
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -108,6 +65,37 @@ function stableSort(array, comparator) {
   });
   return stabilizedThis.map((el) => el[0]);
 }
+
+const headCells = [
+  {
+    id: "name",
+    numeric: false,
+    disablePadding: true,
+    label: "Email",
+    sortable: false,
+  },
+  {
+    id: "role",
+    numeric: true,
+    disablePadding: false,
+    label: "Role",
+    sortable: true,
+  },
+  {
+    id: "last_modified_date",
+    numeric: true,
+    disablePadding: false,
+    label: "Last Modified Date",
+    sortable: true,
+  },
+  {
+    id: "actions",
+    numeric: true,
+    disablePadding: false,
+    label: "",
+    sortable: false,
+  },
+];
 
 function EnhancedTableHead(props) {
   const { order, orderBy, onRequestSort } = props;
@@ -240,136 +228,77 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
     </Toolbar>
   );
 }
+
 export default function EnhancedTable() {
   const [order, setOrder] = useState("asc");
-  const [orderBy, setOrderBy] = useState("last_modified_date");
+  const [orderBy, setOrderBy] = useState("role");
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setisModalOpen] = useState(false);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [setModalOpen, setModalOpen_Delete] = useState(false);
 
-  //   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
-  const [inputType, setInputType] = useState("");
-  const [activeButton, setActiveButton] = useState("");
-  const editor = useRef(null);
-
-  //Alert
-  const [show, setShow] = useState(false);
+  // Alert
+  const [show, setShow] = useState(false); //Alerts
   const [alertSeverity, setAlertSeverity] = useState("error");
   const [serverResponse, setServerResponse] = useState("");
 
   // require
-  const [PageNameTouched, setPageNameTouched] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
 
+  
   const [rows, setUsersData] = useState([]);
-
+  
   const [selectedID, setSelectedID] = useState(null);
   const [formData, setFormData] = useState({
-    page_name: "",
-    url: "",
-    redirectURL: "",
-    html_data: "",
+    email: "",
+    old_password: "",
+    new_password: "",
+    confirm_password: "",
   });
+  
+  const showEmailError = emailTouched && !formData.email;
+  
 
-  const showPagNameError = PageNameTouched && !formData.page_name;
-
-  const options = [
-    "bold",
-    "italic",
-    "underline",
-    "strikethrough",
-    "|",
-    "align",
-    "ul",
-    "ol",
-    "|",
-    "font",
-    "fontsize",
-    "brush",
-    "paragraph",
-    "source",
-    "|",
-    "outdent",
-    "indent",
-    "align",
-    "|",
-    "hr",
-    "|",
-    "fullsize",
-    "brush",
-    "|",
-    "table",
-    "link",
-    "eraser",
-    "|",
-    "undo",
-    "redo",
-  ];
-  const config = useMemo(
-    () => ({
-      readonly: false,
-      placeholder: "",
-      defaultActionOnPaste: "insert_as_html",
-      defaultLineHeight: 1.5,
-      // enter: "div",
-      buttons: options,
-      buttonsMD: options,
-      buttonsSM: options,
-      buttonsXS: options,
-      statusbar: false,
-      sizeLG: 900,
-      sizeMD: 700,
-      sizeSM: 400,
-      height: 350,
-      toolbarAdaptive: false,
-      toolbarButtonSize: "small",
-      toolbar: true,
-      showCharsCounter: false,
-    }),
-    []
-  );
 
   const axiosPrivate = useAxiosInterceptor();
-  const access_token = localStorage.getItem("access_token") || " ";
-
+  
   useEffect(() => {
     getData();
   }, []);
+  
+  const access_token = localStorage.getItem("access_token") || " ";
+  const decodedToken = jwtDecode(access_token);
+  const user_id = decodedToken.user_id;
+
 
   const getData = async () => {
     try {
-      const response = await axiosPrivate.get("landing_page/", {
+      const response = await axiosPrivate.get(`user/getdata/${user_id}`, {
         headers: {
           Authorization: `Bearer ${JSON.parse(access_token)}`,
         },
       });
+
       const data = response.data;
-      const formattedData = data.landing_page.map((landing_page, index) =>
+      const formattedData = data.user.map((user, index) =>
         createData(
           index + 1,
-          landing_page.page_name,
-          landing_page.modified_date || "N/A",
-          landing_page.url,
-          landing_page.redirectURL,
-          landing_page.html_data,
-          landing_page.id
+          user.email,
+          user.role,
+          user.modified_date || "N/A",
+          user.user_id
         )
       );
-      console.log(formattedData);
+      // console.log(formattedData)
       setUsersData(formattedData);
     } catch (error) {
-      console.error("Error fetching landing page data:", error);
+      console.log(error);
     }
   };
 
-  const handleInputType = (type) => {
-    setInputType(type);
-    setActiveButton(type);
-  };
-
+  // -------------------------------------------------------------------------------
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
@@ -383,25 +312,6 @@ export default function EnhancedTable() {
       return;
     }
     setSelected([]);
-  };
-
-  const handleClick = (event, id) => {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
-    }
-    setSelected(newSelected);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -427,35 +337,32 @@ export default function EnhancedTable() {
     filteredRows,
     getComparator(order, orderBy)
   ).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  // ----------------------------------------------------------------
 
   // EDIT
   const showModal = () => {
-    setIsModalOpen(true);
+    setisModalOpen(true);
   };
 
   const handleCancel = () => {
-    setIsModalOpen(false);
+    setisModalOpen(false);
   };
 
   const editAction = (row) => {
-    setSelectedID(row.page_id);
-    console.log(row);
-    console.log(row.name);
+    setSelectedID(row.user_id);
     setFormData({
-      page_name: row.name,
-      url: row.url,
-      redirectURL: row.redirectURL,
-      html_data: row.html_data,
+      email: row.name,
+      old_password: "",
+      new_password: "",
+      confirm_password: "",
     });
     showModal();
   };
 
-  const handleEdit = async (event) => {
-    event.preventDefault();
-
+  const handleEdit = async () => {
     try {
       const response = await axiosPrivate.put(
-        `landing_page/${selectedID}`,
+        `user/setting/${selectedID}`,
         formData,
         {
           headers: {
@@ -470,13 +377,14 @@ export default function EnhancedTable() {
         setShow(true);
         setFormData({
           email: "",
-          password: "",
+          old_password: "",
+          new_password: "",
           confirm_password: "",
         });
 
         setTimeout(() => {
           setShow(false);
-          setIsModalOpen(false);
+          setisModalOpen(false);
         }, 1500);
 
         getData();
@@ -487,47 +395,8 @@ export default function EnhancedTable() {
       console.log(serverResponse);
       setShow(true);
     }
-    console.log(formData);
   };
 
-  const handleFormChange = (event) => {
-    const { name, value } = event.target;
-    setFormData((prevData) => ({ ...prevData, [name]: value }));
-  };
-
-  const handleHtmlChange = (content) => {
-    setFormData((prevData) => ({ ...prevData, html_data: content }));
-  };
-
-  // DELETE
-  const showModal_Delete = (page_id) => {
-    setSelectedID(page_id);
-    setModalOpen_Delete(true);
-  };
-  const Cancel = () => {
-    setModalOpen_Delete(false);
-  };
-
-  const handleDelete = async () => {
-    try {
-      const response = await axiosPrivate.delete(`landing_page/${selectedID}`, {
-        headers: {
-          Authorization: `Bearer ${JSON.parse(access_token)}`,
-        },
-      });
-      if (response) {
-        console.log("Delete successful!");
-
-        getData();
-        setModalOpen_Delete(false);
-      }
-    } catch (error) {
-      setAlertSeverity("error");
-      setServerResponse("This Landing Page is working, can not be deleted");
-      setShow(true);
-    }
-    console.log(selectedID);
-  };
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -562,6 +431,8 @@ export default function EnhancedTable() {
                     sx={{ cursor: "pointer" }}
                   >
                     <TableCell padding="checkbox"></TableCell>
+
+                    {/* DATA HERE*/}
                     <TableCell
                       component="th"
                       id={labelId}
@@ -570,9 +441,13 @@ export default function EnhancedTable() {
                     >
                       {row.name}
                     </TableCell>
+
+                    <TableCell align="right">{row.role}</TableCell>
+
                     <TableCell align="right">
                       {row.last_modified_date}
                     </TableCell>
+
                     <TableCell align="right">
                       {row.name && (
                         <>
@@ -584,17 +459,6 @@ export default function EnhancedTable() {
                               width: 70,
                               height: 40,
                               backgroundColor: "#43bf7d",
-                              color: "#FFF",
-                            }}
-                          />
-                          <Button
-                            icon={<DeleteRoundedIcon />}
-                            onClick={() => showModal_Delete(row.page_id)}
-                            style={{
-                              fontSize: "16px",
-                              width: 70,
-                              height: 40,
-                              backgroundColor: "#e35e5e",
                               color: "#FFF",
                             }}
                           />
@@ -630,6 +494,8 @@ export default function EnhancedTable() {
             </TableBody>
           </Table>
         </TableContainer>
+
+
         <TablePagination
           rowsPerPageOptions={[]}
           sx={{
@@ -643,9 +509,8 @@ export default function EnhancedTable() {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
         <Modal
-          title="New Landing Page"
+          title="Account Settings"
           width={800}
-          style={{ marginTop: "20px" }}
           centered
           open={isModalOpen}
           onCancel={handleCancel}
@@ -657,6 +522,7 @@ export default function EnhancedTable() {
               height: "36px",
             },
           }}
+          style={{ width: "600px", height: "400px" }}
           cancelText="CANCEL"
           footer={(_, { CancelBtn }) => (
             <>
@@ -708,132 +574,57 @@ export default function EnhancedTable() {
           <Box
             component="form"
             sx={{
-              "& .MuiTextField-root": { m: 1, width: "98%" },
+              "& .MuiTextField-root": { m: 1, width: "100%" },
             }}
             noValidate
             autoComplete="off"
           >
-            <TextField
-              error={showPagNameError}
-              helperText={showPagNameError ? "Page name is required" : ""}
-              label="Page Name"
-              name="page_name"
-              value={formData.page_name || ""}
-              onBlur={() => setPageNameTouched(true)}
-              onChange={handleFormChange}
-              variant="outlined"
-            />
-            <div style={{ display: "flex", gap: 2 }}>
+            <div>
               <TextField
                 disabled
-                name="url"
-                label="URL"
-                defaultValue="Not available"
-                // value={formData.url || ""}
-                // onChange={handleFormChange}
+                error={showEmailError}
+                helperText={showEmailError ? "Email is required" : ""}
+                label="Email"
                 variant="outlined"
-                sx={{ flex: 1 }}
+                value={formData.email}
+                onBlur={() => setEmailTouched(true)}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
               />
               <TextField
-                disabled
-                name="redirectURL"
-                label="Redirect URL"
-                defaultValue="Not available"
-                // value={formData.redirectURL || ""}
-                // onChange={handleFormChange}
+                label="Old Password"
                 variant="outlined"
-                sx={{ flex: 1 }}
-              />
-            </div>
-            <div style={{ marginTop: "10px", marginLeft: "7px", gap: 12 }}>
-              <Button_m
-                variant="text"
-                size="large"
-                style={{
-                  borderRadius: activeButton === "html" ? "0px" : "4px",
-                  borderBottom: activeButton === "html" ? "solid" : "none",
-                }}
-                onClick={() => handleInputType("html")}
-              >
-                HTML
-              </Button_m>
-            </div>
-            {inputType === "html" && (
-              <div style={{ marginTop: "10px" }}>
-                <JoditEditor
-                  ref={editor}
-                  value={formData.html_data || ""}
-                  tabIndex={1}
-                  config={config}
-                  onBlur={handleHtmlChange}
-                  onChange={() => {}}
-                />
-              </div>
-            )}
-          </Box>
-        </Modal>
+                type="password"
+                autoComplete="current-password"
+                value={formData.old_password}
 
-        <Modal
-          title="Delete Item"
-          centered
-          open={setModalOpen}
-          onCancel={Cancel}
-          cancelButtonProps={{
-            style: {
-              backgroundColor: "#ff5252",
-              color: "#FFF",
-              fontSize: "13px",
-              height: "36px",
-            },
-          }}
-          cancelText="CANCEL"
-          footer={(_, { CancelBtn }) => (
-            <>
-              <CancelBtn />
-              <Button
-                onClick={handleDelete}
-                style={{
-                  borderColor: "rgba(67,190,126,255)",
-                  color: "rgba(67,190,126,255)",
-                  fontSize: "13px",
-                  height: "36px",
-                }}
-              >
-                OK
-              </Button>
-            </>
-          )}
-        >
-          {show ? (
-            <>
-              <Box sx={{ width: "100%" }}>
-                <Collapse in={show}>
-                  <Alert
-                    severity={alertSeverity}
-                    action={
-                      <IconButton
-                        aria-label="close"
-                        color="inherit"
-                        size="small"
-                        onClick={() => {
-                          setShow(false);
-                        }}
-                      >
-                        <CloseIcon fontSize="inherit" />
-                      </IconButton>
-                    }
-                    sx={{ mb: 2 }}
-                  >
-                    <AlertTitle>
-                      {alertSeverity === "success" ? "Success" : "Error"}
-                    </AlertTitle>
-                    <span>{serverResponse}</span>
-                  </Alert>
-                </Collapse>
-              </Box>
-            </>
-          ) : null}
-          <Typography>Are you sure you want to delete this item?</Typography>
+                onChange={(e) =>
+                  setFormData({ ...formData, old_password: e.target.value })
+                }
+              />
+              <TextField
+                label="New Password"
+                variant="outlined"
+                type="password"
+                autoComplete="current-password"
+                value={formData.new_password}
+                onChange={(e) =>
+                  setFormData({ ...formData, new_password: e.target.value })
+                }
+              />
+              <TextField
+                label="Confirm Password"
+                variant="outlined"
+                type="password"
+                autoComplete="current-password"
+                value={formData.confirm_password}
+                onChange={(e) =>
+                  setFormData({ ...formData, confirm_password: e.target.value })
+                }
+              />
+            </div>
+          </Box>
         </Modal>
       </Paper>
     </Box>
