@@ -13,7 +13,7 @@ import ClickedLinkDonut from "@/components/charts/donut-charts/ClickedLinkDonut"
 import SummittedDataDonut from "@/components/charts/donut-charts/SummittedDataDonut";
 import Linecharts from "@/components/charts/line-charts/Linecharts";
 // import EnhancedTable from "@/components/data-table/RcampaingsTable";
-import EnhancedTable from "@/components/data-table/RcampaignsTable2";
+import EnhancedTable from "@/components/data-table/RcampaignsTable";
 import useAxiosInterceptor from "@/middleware/interceptors";
 
 export default function RCampaignsPage() {
@@ -30,6 +30,7 @@ export default function RCampaignsPage() {
   const handlecampaignsClick = () => {
     navigate("/campaigns");
   };
+  
   const { cam_id } = useParams();
 
   const [total, setTotal] = useState();

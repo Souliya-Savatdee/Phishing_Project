@@ -1,10 +1,63 @@
+import React, { useState, useEffect } from "react";
+
 import UDashboardLayout from "@/layouts/UDashboardLayout";
 import { Typography, Card, Divider } from "antd";
 import Ulinecharts from "@/components/charts/line-charts/Ulinecharts";
 import Udonutcharts from "@/components/charts/donut-charts/Udonutcharts";
 import EnhancedTable from "@/components/data-table/uDashboardTable";
+import useAxiosInterceptor from "@/middleware/interceptors";
+import { jwtDecode } from "jwt-decode";
 
 export default function UDashboardPage() {
+  const [totalSum, setTotalSum] = useState(0);
+  const [successSum, setSuccessSum] = useState(0);
+
+  const [resultData, setResultData] = useState([]);
+
+  const axiosPrivate = useAxiosInterceptor();
+  const access_token = localStorage.getItem("access_token") || " ";
+  const decodedToken = jwtDecode(access_token);
+  const uID = decodedToken.user_id;
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  const getData = async () => {
+    try {
+      const response = await axiosPrivate.get(`campaign/dashboard/${uID}`, {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
+      });
+
+      const data = response.data;
+      if (data.result && data.result.length > 0) {
+        const campaignData = data.result.map((result) => ({
+          cam_id: result.cam_id,
+          cam_name: result.cam_name,
+          create_date: result.create_date,
+          completed_date: result.completed_date,
+          total: result.status.total,
+          success: result.status.submit,
+        }));
+
+        const totalSum = campaignData.reduce((acc, curr) => acc + curr.total, 0);
+        const successSum = campaignData.reduce((acc, curr) => acc + curr.success, 0);
+
+
+        setResultData(campaignData);
+        setTotalSum(totalSum);
+        setSuccessSum(successSum);
+        
+      } else {
+        console.log("No result found");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <UDashboardLayout>
       <>
@@ -23,8 +76,8 @@ export default function UDashboardPage() {
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <Ulinecharts />
-            <Udonutcharts />
+            <Ulinecharts resultData={resultData}/>
+            <Udonutcharts totalSum={totalSum} successSum = {successSum}/>
           </div>
           <div style={{ paddingTop: "10px", paddingBottom: "10px" }}>
             <Typography.Title level={1}>Recent Campaigns</Typography.Title>

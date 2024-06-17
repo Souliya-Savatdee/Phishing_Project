@@ -397,7 +397,6 @@ export default function EnhancedTable() {
 
   //View Result
   const handleViewResult = (cam_id) => {
-
     console.log(cam_id)
     navigate(`/campaigns/result/${cam_id}`);
   };

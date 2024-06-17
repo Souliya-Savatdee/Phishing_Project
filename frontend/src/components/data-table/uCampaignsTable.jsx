@@ -24,7 +24,6 @@ import {
 
 import { Button } from "antd";
 import GridViewRoundedIcon from "@mui/icons-material/GridViewRounded";
-import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { visuallyHidden } from "@mui/utils";
 import SearchIcon from "@mui/icons-material/Search";
 import { useNavigate } from "react-router-dom";
@@ -311,10 +310,8 @@ export default function EnhancedTable() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
-  const [setModalOpen, setModalOpen_Delete] = useState(false);
 
   const [rows, setUsersData] = useState([]);
-  const [selectedID, setSelectedID] = useState(null);
 
   const axiosPrivate = useAxiosInterceptor();
   const access_token = localStorage.getItem("access_token") || " ";

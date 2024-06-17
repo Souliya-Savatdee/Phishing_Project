@@ -57,7 +57,7 @@ def validate_email(email):
 class GroupManagments(Resource):
     
     # Create Group
-    # @jwt_required()
+    @jwt_required()
     @group_ns.expect(group_model)
     def post(self):
         
@@ -116,7 +116,7 @@ class GroupManagments(Resource):
 
 
     # Get all groups
-    # @jwt_required()
+    @jwt_required()
     def get(self):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -152,7 +152,7 @@ class GroupManagments(Resource):
 class GroupManagments(Resource):
 
     # Edit Group
-    # @jwt_required()
+    @jwt_required()
     def put(self, id):
         
         # permission_check = check_admin_permission()
@@ -227,8 +227,7 @@ class GroupManagments(Resource):
 
 
     # Delete Group
-    # @jwt_required()
-    
+    @jwt_required()
     def delete(self, id):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -258,7 +257,7 @@ class GroupManagments(Resource):
         return make_response(jsonify({"msg": "Group deleted"}), HTTP_200_OK)
     
 
-    # @jwt_required()
+    @jwt_required()
     def get (self, id):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -289,19 +288,3 @@ class GroupManagments(Resource):
         return make_response(jsonify({"group_name": group_name, "group_id": db_group.id, "target_list": data, "modified_date": modified_date}), HTTP_200_OK)
     
 
-
-# @group_ns.route("/target/<int:id>")
-# class TartgetDelete(Resource):
-#     def delete(self, id):
-#         # Find the target by ID
-#         target = db.session.query(Target).filter_by(id=id).first()
-
-#         # Check if the target exists
-#         if not target:
-#             return jsonify({"msg": "Target not found"}), 404
-
-#         # Delete the target
-#         db.session.delete(target)
-#         db.session.commit()
-
-#         return jsonify({"msg": "Target deleted successfully"}), 200

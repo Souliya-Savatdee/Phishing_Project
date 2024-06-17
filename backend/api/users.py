@@ -103,7 +103,7 @@ def validatePasswordChange(currentHash, newPassword, confirmPassword):
 class UserManagements(Resource):
 
     # Add user
-    # @jwt_required()
+    @jwt_required()
     @user_ns.expect(signup_model)
     def post(self):
         # protect admin permisstion
@@ -205,7 +205,7 @@ class UserManagements(Resource):
 @user_ns.route("/management/<uuid:id>")
 class UserManagement(Resource):
     # Delete user
-    # @jwt_required()
+    @jwt_required()
     def delete(self, id):
 
         # permission_check = check_admin_permission()
@@ -223,7 +223,7 @@ class UserManagement(Resource):
         return make_response(jsonify({"msg": "User Deleted"}), HTTP_200_OK)
 
     # Edit user
-    # @jwt_required()
+    @jwt_required()
     def put(self, id):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -303,7 +303,7 @@ class UserManagement(Resource):
 class UserSetting(Resource):
     # User Settings
 
-    # @jwt_required()
+    @jwt_required()
     @user_ns.expect(user_model)
     def put(self, id):
 
@@ -376,7 +376,7 @@ class UserSetting(Resource):
 
 @user_ns.route("/getdata/<uuid:id>")
 class UserData(Resource):
-    # @jwt_required()
+    @jwt_required()
     def get(self, id):
         
         db_user = db.session.query(User).filter_by(id = id).first()

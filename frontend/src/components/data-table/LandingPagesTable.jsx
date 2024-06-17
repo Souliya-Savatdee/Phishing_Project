@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -16,7 +16,6 @@ import {
   LinearProgress,
   TextField,
   Button as Button_m,
-  MenuItem,
   IconButton,
   Alert,
   AlertTitle,
@@ -27,15 +26,14 @@ import CloseIcon from "@mui/icons-material/Close";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
-
-// Ant Design components
 import { Button, Modal, Divider } from "antd";
 
-// Jodit Editor
-import JoditEditor from "jodit-react";
-
-// Custom hooks
 import useAxiosInterceptor from "@/middleware/interceptors";
+
+import CodeMirror from "@uiw/react-codemirror";
+import { vscodeDark } from "@uiw/codemirror-theme-vscode";
+import { javascript } from "@codemirror/lang-javascript";
+import { html } from "@codemirror/lang-html";
 
 function createData(
   id,
@@ -251,10 +249,11 @@ export default function EnhancedTable() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [setModalOpen, setModalOpen_Delete] = useState(false);
 
-  //   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
   const [inputType, setInputType] = useState("");
   const [activeButton, setActiveButton] = useState("");
-  const editor = useRef(null);
+  const [htmlButtonClicked, setHtmlButtonClicked] = useState(false);
+
+  const iframeRef = useRef(null); 
 
   //Alert
   const [show, setShow] = useState(false);
@@ -275,62 +274,6 @@ export default function EnhancedTable() {
   });
 
   const showPagNameError = PageNameTouched && !formData.page_name;
-
-  const options = [
-    "bold",
-    "italic",
-    "underline",
-    "strikethrough",
-    "|",
-    "align",
-    "ul",
-    "ol",
-    "|",
-    "font",
-    "fontsize",
-    "brush",
-    "paragraph",
-    "source",
-    "|",
-    "outdent",
-    "indent",
-    "align",
-    "|",
-    "hr",
-    "|",
-    "fullsize",
-    "brush",
-    "|",
-    "table",
-    "link",
-    "eraser",
-    "|",
-    "undo",
-    "redo",
-  ];
-  const config = useMemo(
-    () => ({
-      readonly: false,
-      placeholder: "",
-      defaultActionOnPaste: "insert_as_html",
-      defaultLineHeight: 1.5,
-      // enter: "div",
-      buttons: options,
-      buttonsMD: options,
-      buttonsSM: options,
-      buttonsXS: options,
-      statusbar: false,
-      sizeLG: 900,
-      sizeMD: 700,
-      sizeSM: 400,
-      height: 350,
-      toolbarAdaptive: false,
-      toolbarButtonSize: "small",
-      toolbar: true,
-      showCharsCounter: false,
-    }),
-    []
-  );
 
   const axiosPrivate = useAxiosInterceptor();
   const access_token = localStorage.getItem("access_token") || " ";
@@ -385,25 +328,6 @@ export default function EnhancedTable() {
     setSelected([]);
   };
 
-  const handleClick = (event, id) => {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
-    }
-    setSelected(newSelected);
-  };
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -427,6 +351,44 @@ export default function EnhancedTable() {
     filteredRows,
     getComparator(order, orderBy)
   ).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+
+  const handleHtmlButtonClick = () => {
+    setInputType("html");
+    setActiveButton("html");
+    setHtmlButtonClicked(true);
+  };
+
+  const handleRenderButtonClick = () => {
+    setInputType("render");
+    setActiveButton("render");
+    const iframe = iframeRef.current;
+
+    if (iframe) {
+      const fullPageButton = `
+      <button id="fullPageBtn" style="position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 5px 10px; font-size: 12px; background-color: #d5d5d5; color: white; border: none; border-radius: 3px; cursor: pointer;">
+        Full Page
+      </button>
+      <script>
+        document.getElementById('fullPageBtn').addEventListener('click', function() {
+          const iframe = window.frameElement;
+          if (iframe.requestFullscreen) {
+            iframe.requestFullscreen();
+          } else if (iframe.mozRequestFullScreen) { /* Firefox */
+            iframe.mozRequestFullScreen();
+          } else if (iframe.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+            iframe.webkitRequestFullscreen();
+          } else if (iframe.msRequestFullscreen) { /* IE/Edge */
+            iframe.msRequestFullscreen();
+          }
+        });
+      </script>
+    `;
+
+      iframe.srcdoc = formData.html_data + fullPageButton;
+    }
+  };
+
 
   // EDIT
   const showModal = () => {
@@ -753,21 +715,67 @@ export default function EnhancedTable() {
                   borderRadius: activeButton === "html" ? "0px" : "4px",
                   borderBottom: activeButton === "html" ? "solid" : "none",
                 }}
-                onClick={() => handleInputType("html")}
+                onClick={handleHtmlButtonClick}
               >
                 HTML
               </Button_m>
+              {htmlButtonClicked && (
+                <Button_m
+                  variant="text"
+                  size="large"
+                  style={{
+                    borderRadius: activeButton === "render" ? "0px" : "4px",
+                    borderBottom: activeButton === "render" ? "solid" : "none",
+                  }}
+                  onClick={handleRenderButtonClick}
+                >
+                  Render
+                </Button_m>
+              )}
             </div>
             {inputType === "html" && (
               <div style={{ marginTop: "10px" }}>
-                <JoditEditor
-                  ref={editor}
+                <CodeMirror
                   value={formData.html_data || ""}
-                  tabIndex={1}
-                  config={config}
-                  onBlur={handleHtmlChange}
-                  onChange={() => {}}
+                  onChange={(value, viewUpdate) =>
+                    setFormData((prevData) => ({
+                      ...prevData,
+                      html_data: value,
+                    }))
+                  }
+                  height="400px"
+                  theme={vscodeDark}
+                  extensions={[javascript({ jsx: true }), html()]}
+                  placeholder={"Code here..."}
+                  style={{ border: "1px solid #e5e5e5", borderRadius: "4px" }}
                 />
+              </div>
+            )}
+            {inputType === "render" && (
+              <div style={{ marginTop: "10px" }}>
+                {formData.html_data ? (
+                  <iframe
+                    ref={iframeRef}
+                    title="Rendered HTML"
+                    width="100%"
+                    height="400px"
+                    style={{ border: "1px solid #e5e5e5", borderRadius: "4px" }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      border: "1px solid #e5e5e5",
+                      borderRadius: "4px",
+                      height: "400px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#999",
+                    }}
+                  >
+                    No HTML content to display
+                  </div>
+                )}
               </div>
             )}
           </Box>

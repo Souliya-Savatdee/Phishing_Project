@@ -1,12 +1,6 @@
 import DashboardLayout from "@/layouts/DashboardLayout";
 import React, { useState } from "react";
-import {
-  Button,
-  Typography,
-  Card,
-  Divider,
-  Modal,
-} from "antd";
+import { Button, Typography, Card, Divider, Modal } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import {
   Box,
@@ -18,14 +12,17 @@ import {
   Collapse,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
+
+import { useNavigate } from "react-router-dom";
 
 import EnhancedTable from "@/components/data-table/UserGroupTable";
 import EnhancedTable_m from "@/components/data-table/UserGroupPopupTable";
 import useAxiosInterceptor from "@/middleware/interceptors";
 
-
 export default function UserAndGroupPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const [name, setName] = useState("");
   const [firstname, setFirstname] = useState("");
@@ -42,7 +39,9 @@ export default function UserAndGroupPage() {
   const access_token = localStorage.getItem("access_token");
 
   const handleDelete = (id) => {
-    setTarget((prevTargets) => prevTargets.filter((target) => target.id !== id));
+    setTarget((prevTargets) =>
+      prevTargets.filter((target) => target.id !== id)
+    );
   };
 
   const showModal = () => {
@@ -57,7 +56,6 @@ export default function UserAndGroupPage() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
-
 
   const handleAddTarget = () => {
     const trimmedFirstname = firstname.trim();
@@ -83,11 +81,11 @@ export default function UserAndGroupPage() {
       setAlertSeverity("error");
       setServerResponse("Invalid email address");
       setShow(true);
-      return
+      return;
     }
 
     const newTarget = {
-      id: target.length + 1, 
+      id: target.length + 1,
       first_name: firstname,
       last_name: lastname,
       email: email,
@@ -164,6 +162,18 @@ export default function UserAndGroupPage() {
     }
   };
 
+  const navigate = useNavigate();
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    navigate(`/refresh`);
+    setTimeout(() => {
+      navigate(`/user-and-group`);
+
+      setRefreshing(false);
+    });
+  };
+
   return (
     <DashboardLayout>
       <>
@@ -181,23 +191,49 @@ export default function UserAndGroupPage() {
             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
           }}
         >
-          <Button
-            icon={<PlusOutlined />}
+          <div
             style={{
-              fontSize: "14px",
-              width: 140,
-              height: 40,
-              backgroundColor: "rgb(104,188,131)",
-              color: "#FFF",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              bottom: "25px",
+              justifyContent: "space-between",
+              gap: "10px",
             }}
-            onClick={showModal}
           >
-            New Group
-          </Button>
+            <Button
+              icon={<PlusOutlined />}
+              style={{
+                fontSize: "14px",
+                width: 140,
+                height: 40,
+                backgroundColor: "rgb(104,188,131)",
+                color: "#FFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bottom: "25px",
+              }}
+              onClick={showModal}
+            >
+              New Group
+            </Button>
+            <Button
+              icon={<AutorenewIcon fontSize="small" />}
+              style={{
+                fontSize: "14px",
+                width: 110,
+                height: 40,
+                backgroundColor: "#7fa0fb",
+                color: "#FFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bottom: "25px",
+              }}
+              loading={refreshing}
+              onClick={handleRefresh}
+            >
+              Refresh
+            </Button>
+          </div>
           <div style={{ marginTop: "10px" }}>
             <EnhancedTable />
           </div>
@@ -301,7 +337,6 @@ export default function UserAndGroupPage() {
                 sx={{ flex: 1 }}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                
               />
             </div>
             <div style={{ display: "flex", gap: 10, marginTop: "15px" }}>

@@ -1,76 +1,37 @@
-import React, { useState, useRef , useMemo} from "react";
-import { TextField, MenuItem, Box, IconButton, Alert, AlertTitle, Collapse } from "@mui/material";
+import React, { useState, useRef } from "react";
+import {
+  TextField,
+  Box,
+  IconButton,
+  Alert,
+  AlertTitle,
+  Collapse,
+} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { Typography, Card, Divider, Button, Modal } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import Button_m from "@mui/material/Button";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
+import { useNavigate } from "react-router-dom";
 
-import JoditEditor from "jodit-react";
 import EnhancedTable from "@/components/data-table/LandingPagesTable";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import useAxiosInterceptor from "@/middleware/interceptors";
 
+import CodeMirror from "@uiw/react-codemirror";
+import { vscodeDark } from "@uiw/codemirror-theme-vscode";
+import { javascript } from "@codemirror/lang-javascript";
+import { html } from "@codemirror/lang-html";
+
 export default function LandingPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
   const [inputType, setInputType] = useState("");
   const [activeButton, setActiveButton] = useState("");
-  const editor = useRef(null);
-  const options = [
-    "bold",
-    "italic",
-    "underline",
-    "strikethrough",
-    "|",
-    "align",
-    "ul",
-    "ol",
-    "|",
-    "font",
-    "fontsize",
-    "brush",
-    "paragraph",
-    "source",
-    "|",
-    "outdent",
-    "indent",
-    "align",
-    "|",
-    "hr",
-    "|",
-    "fullsize",
-    "brush",
-    "|",
-    "table",
-    "link",
-    "eraser",
-    "|",
-    "undo",
-    "redo",
-  ];
-  const config = useMemo(
-    () => ({
-      readonly: false,
-      placeholder: "",
-      defaultActionOnPaste: "insert_as_html",
-      defaultLineHeight: 1.5,
-      enter: "div",
-      // options that we defined in above step.
-      buttons: options,
-      buttonsMD: options,
-      buttonsSM: options,
-      buttonsXS: options,
-      statusbar: false,
-      sizeLG: 900,
-      sizeMD: 700,
-      sizeSM: 400,
-      toolbarAdaptive: false,
-      height: 350,
-      toolbarButtonSize: "small",
-      toolbar: true,
-      showCharsCounter: false,
-    }),
-    []
-  );
+  const [htmlButtonClicked, setHtmlButtonClicked] = useState(false);
+  const iframeRef = useRef(null);
+
   // Alert
   const [show, setShow] = useState(false);
   const [alertSeverity, setAlertSeverity] = useState("error");
@@ -79,32 +40,52 @@ export default function LandingPage() {
   // require
   const [PageNameTouched, setPageNameTouched] = useState(false);
 
-
   const [formData, setFormData] = useState({
     page_name: "",
     url: "",
     redirectURL: "",
     html_data: "",
   });
-
-//   const handleInputChange = (event) => {
-//     const { name, value } = event.target ;
-//     setFormData((prevData) => ({
-//       ...prevData,
-//       [name]: value,
-//     }));
-//   };
-
-//   let handleJoditEditorChange = (name, newContent)=>{
-//     setFormData((prevData) => ({
-//       ...prevData,
-//       [name]: newContent,
-//     }));
-// }
+  const navigate = useNavigate();
 
   // require
   const showPageNameError = PageNameTouched && !formData.page_name;
 
+  const handleHtmlButtonClick = () => {
+    setInputType("html");
+    setActiveButton("html");
+    setHtmlButtonClicked(true);
+  };
+
+  const handleRenderButtonClick = () => {
+    setInputType("render");
+    setActiveButton("render");
+    const iframe = iframeRef.current;
+
+    if (iframe) {
+      const fullPageButton = `
+      <button id="fullPageBtn" style="position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 5px 10px; font-size: 12px; background-color: #d5d5d5; color: white; border: none; border-radius: 3px; cursor: pointer;">
+        Full Page
+      </button>
+      <script>
+        document.getElementById('fullPageBtn').addEventListener('click', function() {
+          const iframe = window.frameElement;
+          if (iframe.requestFullscreen) {
+            iframe.requestFullscreen();
+          } else if (iframe.mozRequestFullScreen) { /* Firefox */
+            iframe.mozRequestFullScreen();
+          } else if (iframe.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+            iframe.webkitRequestFullscreen();
+          } else if (iframe.msRequestFullscreen) { /* IE/Edge */
+            iframe.msRequestFullscreen();
+          }
+        });
+      </script>
+    `;
+
+      iframe.srcdoc = formData.html_data + fullPageButton;
+    }
+  };
 
   const axiosPrivate = useAxiosInterceptor();
 
@@ -116,28 +97,17 @@ export default function LandingPage() {
     setIsModalOpen(false);
   };
 
-
-  const handleInputType = (type) => {
-    setInputType(type);
-    setActiveButton(type);
-  };
-
-
   const handleFormChange = (event) => {
     const { name, value } = event.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
-
-  const handleHtmlChange = (content) => {
-    setFormData((prevData) => ({ ...prevData, html_data: content }));
-  };
-
 
   const access_token = localStorage.getItem("access_token");
 
   //Create Landging Page
   const onSubmit = async (event) => {
     event.preventDefault();
+
     try {
       const response = await axiosPrivate.post("landing_page/", formData, {
         headers: {
@@ -162,7 +132,6 @@ export default function LandingPage() {
         setShow(false);
         setIsModalOpen(false);
       }, 1500);
-
     } catch (error) {
       setAlertSeverity("error");
       setServerResponse(error.response.data.msg);
@@ -170,6 +139,16 @@ export default function LandingPage() {
       setShow(true);
     }
     console.log(formData);
+  };
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    navigate(`/refresh`);
+    setTimeout(() => {
+      navigate(`/landing-pages`);
+
+      setRefreshing(false);
+    });
   };
 
   return (
@@ -189,23 +168,49 @@ export default function LandingPage() {
             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
           }}
         >
-          <Button
-            icon={<PlusOutlined />}
+          <div
             style={{
-              fontSize: "14px",
-              width: 140,
-              height: 40,
-              backgroundColor: "rgb(104,188,131)",
-              color: "#FFF",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              bottom: "25px",
+              justifyContent: "space-between",
+              gap: "10px",
             }}
-            onClick={showModal}
           >
-            New Page
-          </Button>
+            <Button
+              icon={<PlusOutlined />}
+              style={{
+                fontSize: "14px",
+                width: 140,
+                height: 40,
+                backgroundColor: "rgb(104,188,131)",
+                color: "#FFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bottom: "25px",
+              }}
+              onClick={showModal}
+            >
+              New Page
+            </Button>
+            <Button
+              icon={<AutorenewIcon fontSize="small" />}
+              style={{
+                fontSize: "14px",
+                width: 110,
+                height: 40,
+                backgroundColor: "#7fa0fb",
+                color: "#FFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bottom: "25px",
+              }}
+              loading={refreshing}
+              onClick={handleRefresh}
+            >
+              Refresh
+            </Button>
+          </div>
           <div style={{ marginTop: "10px" }}>
             <EnhancedTable />
           </div>
@@ -283,8 +288,10 @@ export default function LandingPage() {
             onSubmit={onSubmit}
           >
             <TextField
-            error={showPageNameError}
-            helperText={showPageNameError? "Landing Page name is required" : ""}
+              error={showPageNameError}
+              helperText={
+                showPageNameError ? "Landing Page name is required" : ""
+              }
               label="Name"
               name="page_name"
               variant="outlined"
@@ -318,22 +325,67 @@ export default function LandingPage() {
                   borderRadius: activeButton === "html" ? "0px" : "4px",
                   borderBottom: activeButton === "html" ? "solid" : "none",
                 }}
-                onClick={() => handleInputType("html")}
+                onClick={handleHtmlButtonClick}
               >
                 HTML
               </Button_m>
+              {htmlButtonClicked && (
+                <Button_m
+                  variant="text"
+                  size="large"
+                  style={{
+                    borderRadius: activeButton === "render" ? "0px" : "4px",
+                    borderBottom: activeButton === "render" ? "solid" : "none",
+                  }}
+                  onClick={handleRenderButtonClick}
+                >
+                  Render
+                </Button_m>
+              )}
             </div>
             {inputType === "html" && (
               <div style={{ marginTop: "10px" }}>
-                <JoditEditor
-                  ref={editor}
+                <CodeMirror
                   value={formData.html_data || ""}
-                  tabIndex={1}
-                  config={config}
-                  onBlur={handleHtmlChange}
-                  onChange={() => {}}
+                  onChange={(value, viewUpdate) =>
+                    setFormData((prevData) => ({
+                      ...prevData,
+                      html_data: value,
+                    }))
+                  }
+                  height="400px"
+                  theme={vscodeDark}
+                  extensions={[javascript({ jsx: true }), html()]}
+                  placeholder={"Code here..."}
+                  style={{ border: "1px solid #e5e5e5", borderRadius: "4px" }}
                 />
-
+              </div>
+            )}
+            {inputType === "render" && (
+              <div style={{ marginTop: "10px" }}>
+                {formData.html_data ? (
+                  <iframe
+                    ref={iframeRef}
+                    title="Rendered HTML"
+                    width="100%"
+                    height="400px"
+                    style={{ border: "1px solid #e5e5e5", borderRadius: "4px" }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      border: "1px solid #e5e5e5",
+                      borderRadius: "4px",
+                      height: "400px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#999",
+                    }}
+                  >
+                    No HTML content to display
+                  </div>
+                )}
               </div>
             )}
           </Box>

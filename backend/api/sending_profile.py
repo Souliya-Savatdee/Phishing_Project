@@ -77,7 +77,7 @@ def validate_host(host):
 @sending_prolfile_ns.route("/")
 class SmtpManagments(Resource):
     # Add smtp profile
-    # @jwt_required()
+    @jwt_required()
     @sending_prolfile_ns.expect(sending_prolfile_model)
     def post(self):
         # protect admin permisstion
@@ -164,7 +164,7 @@ class SmtpManagments(Resource):
         )
 
     #Get all profiles
-    # @jwt_required()
+    @jwt_required()
     def get(self):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -195,7 +195,7 @@ class SmtpManagments(Resource):
 class SmtpManagment(Resource):
     
     #Delete smtp profile
-    # @jwt_required()
+    @jwt_required()
     @sending_prolfile_ns.expect(sending_prolfile_model)
     
     def delete(self, id):
@@ -218,7 +218,7 @@ class SmtpManagment(Resource):
         )
     
     #Update smtp profile
-    # @jwt_required()
+    @jwt_required()
     def put(self,id):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -332,7 +332,7 @@ class SmtpManagment(Resource):
             
         
         
-    # @jwt_required()
+    @jwt_required()
     def get(self,id):
         # permission_check = check_admin_permission()
         # if permission_check:

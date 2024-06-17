@@ -1,8 +1,8 @@
 from datetime import datetime
 from flask import request, jsonify, make_response, send_file
 from flask_restx import Resource, fields, Namespace
-from flask_jwt_extended import get_jwt, jwt_required
-
+from flask_jwt_extended import get_jwt, jwt_required, verify_jwt_in_request
+from uuid import UUID
 
 from api.models import db, Group, User, Smtp, Template, Page, Campaign, Result
 from utils.file_path_excel import file_path_excel, read_excel_to_json
@@ -20,22 +20,24 @@ result_campaign_ns = Namespace("result", description="Result_campaign operations
 
 @result_campaign_ns.route("/<int:id>")
 class ResultCampaign(Resource):
-    # @jwt_required()
+    @jwt_required()
     def get(self, id):
 
-        # verify_jwt_in_request()
-        # claims = get_jwt()
-        # current_user_id = claims['user_id']
-        # current_user_role = claims['role']
+        verify_jwt_in_request()
+        claims = get_jwt()
+        current_user_id = claims['user_id']
+        current_user_role = claims['role']
 
         db_campaign = db.session.query(Campaign).filter(Campaign.cam_id == id).first()
         if db_campaign is None:
             return make_response(
                 jsonify({"msg": "Campaign not found"}), HTTP_404_NOT_FOUND
             )
-
-        # if current_user_role != 'admin' and db_campaign.user_id != current_user_id:
-        #     return make_response(jsonify({"msg": "Unauthorized"}), HTTP_403_FORBIDDEN)
+        if isinstance(current_user_id, str):
+            current_user_id = UUID(current_user_id)
+            
+        if current_user_role != 'admin' and db_campaign.user_id != current_user_id:
+            return make_response(jsonify({"msg": "Unauthorized"}), HTTP_403_FORBIDDEN)
 
         target = db_campaign.group.target
         data = []
@@ -81,7 +83,7 @@ class ResultCampaign(Resource):
 
 @result_campaign_ns.route("/download/<int:id>")
 class DownloanManagment(Resource):
-    # @jwt_required()
+    @jwt_required()
 
     def get(self, id):
 

@@ -66,7 +66,7 @@ def create_landing(url, file_path,redirectUrl):
         
 @landing_page_ns.route("/")
 class LandingManagments(Resource):
-    # @jwt_required()
+    @jwt_required()
     @landing_page_ns.expect(landing_page_model)
     def post(self):
         # permission_check = check_admin_permission()
@@ -138,7 +138,7 @@ class LandingManagments(Resource):
         )
         
         
-    # @jwt_required()
+    @jwt_required()
     def get(self):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -173,7 +173,7 @@ class LandingManagments(Resource):
 @landing_page_ns.route("/<int:id>")
 class LandingManagment(Resource):
 
-    # @jwt_required()
+    @jwt_required()
     def delete(self, id):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -196,8 +196,7 @@ class LandingManagment(Resource):
             jsonify({"msg": "Landing Page Deleted"}), HTTP_200_OK
         )
         
-    # @jwt_required()
-        
+    @jwt_required()
     def put(self, id):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -262,8 +261,7 @@ class LandingManagment(Resource):
             jsonify({"msg": "Landing Page Updated"}), HTTP_200_OK
         )
         
-    # @jwt_required()
-        
+    @jwt_required()
     def get(self, id):
         # permission_check = check_admin_permission()
         # if permission_check:

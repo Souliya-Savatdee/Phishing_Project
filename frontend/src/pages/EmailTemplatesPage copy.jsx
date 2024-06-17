@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo, useEffect } from "react";
 import { Divider, Button, Modal, Card, Typography } from "antd";
 import {
   Box,
@@ -11,26 +11,74 @@ import {
 } from "@mui/material";
 import { PlusOutlined } from "@ant-design/icons";
 import CloseIcon from "@mui/icons-material/Close";
-import AutorenewIcon from "@mui/icons-material/Autorenew";
-import { useNavigate } from "react-router-dom";
 
 import DashboardLayout from "@/layouts/DashboardLayout";
 import EnhancedTable from "@/components/data-table/EmailTemplatesTable";
+import JoditEditor from "jodit-react";
 import useAxiosInterceptor from "@/middleware/interceptors";
-
-import CodeMirror from "@uiw/react-codemirror";
-import { vscodeDark } from "@uiw/codemirror-theme-vscode";
-import { javascript } from "@codemirror/lang-javascript";
-import { html } from "@codemirror/lang-html";
 
 export default function EmailTemplatesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
   const [inputType, setInputType] = useState("");
   const [activeButton, setActiveButton] = useState("");
-  const [htmlButtonClicked, setHtmlButtonClicked] = useState(false);
-  const iframeRef = useRef(null);
+  const [tableData, setTableData] = useState([]);
+  const editor = useRef(null);
+  const options = [
+    "bold",
+    "italic",
+    "underline",
+    "strikethrough",
+    "|",
+    "align",
+    "ul",
+    "ol",
+    "|",
+    "font",
+    "fontsize",
+    "brush",
+    "paragraph",
+    "source",
+    "|",
+    "outdent",
+    "indent",
+    "align",
+    "|",
+    "hr",
+    "|",
+    "fullsize",
+    "brush",
+    "|",
+    "table",
+    "link",
+    "eraser",
+    "|",
+    "undo",
+    "redo",
+  ];
+  const config = useMemo(
+    () => ({
+      readonly: false,
+      placeholder: "",
+      defaultActionOnPaste: "insert_as_html",
+      defaultLineHeight: 1.5,
+      // enter: "div",
+
+      buttons: options,
+      buttonsMD: options,
+      buttonsSM: options,
+      buttonsXS: options,
+      statusbar: false,
+      sizeLG: 900,
+      sizeMD: 700,
+      sizeSM: 400,
+      toolbarAdaptive: false,
+      height: 350,
+      toolbarButtonSize: "small",
+      toolbar: true,
+      showCharsCounter: false,
+    }),
+    []
+  );
 
   // Alert
   const [show, setShow] = useState(false);
@@ -47,8 +95,6 @@ export default function EmailTemplatesPage() {
     text_data: "",
     html_data: "",
   });
-  const navigate = useNavigate();
-
 
   const showTemplateNameError = templateNameTouched && !formData.temp_name;
   const showSubjectError = subjectTouched && !formData.subject;
@@ -74,40 +120,8 @@ export default function EmailTemplatesPage() {
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const handleHtmlButtonClick = () => {
-    setInputType("html");
-    setActiveButton("html");
-    setHtmlButtonClicked(true);
-  };
-
-  const handleRenderButtonClick = () => {
-    setInputType("render");
-    setActiveButton("render");
-    const iframe = iframeRef.current;
-
-    if (iframe) {
-      const fullPageButton = `
-      <button id="fullPageBtn" style="position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 5px 10px; font-size: 12px; background-color: #d5d5d5; color: white; border: none; border-radius: 3px; cursor: pointer;">
-        Full Page
-      </button>
-      <script>
-        document.getElementById('fullPageBtn').addEventListener('click', function() {
-          const iframe = window.frameElement;
-          if (iframe.requestFullscreen) {
-            iframe.requestFullscreen();
-          } else if (iframe.mozRequestFullScreen) { /* Firefox */
-            iframe.mozRequestFullScreen();
-          } else if (iframe.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
-            iframe.webkitRequestFullscreen();
-          } else if (iframe.msRequestFullscreen) { /* IE/Edge */
-            iframe.msRequestFullscreen();
-          }
-        });
-      </script>
-    `;
-
-      iframe.srcdoc = formData.html_data + fullPageButton;
-    }
+  const handleHtmlChange = (content) => {
+    setFormData((prevData) => ({ ...prevData, html_data: content }));
   };
 
   //Create Email Template Page
@@ -138,6 +152,7 @@ export default function EmailTemplatesPage() {
         setShow(false);
         setIsModalOpen(false);
       }, 1500);
+
     } catch (error) {
       setAlertSeverity("error");
       setServerResponse(error.response.data.msg);
@@ -145,18 +160,8 @@ export default function EmailTemplatesPage() {
       setShow(true);
     }
     console.log(formData);
+
   };
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    navigate(`/refresh`);
-    setTimeout(() => {
-      navigate(`/email-templates`);
-
-      setRefreshing(false);
-    });
-  };
-
   return (
     <DashboardLayout>
       <>
@@ -174,51 +179,25 @@ export default function EmailTemplatesPage() {
             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
           }}
         >
-          <div
+          <Button
+            icon={<PlusOutlined />}
             style={{
+              fontSize: "14px",
+              width: 170,
+              height: 40,
+              backgroundColor: "rgb(104,188,131)",
+              color: "#FFF",
               display: "flex",
-              justifyContent: "space-between",
-              gap: "10px",
+              alignItems: "center",
+              justifyContent: "center",
+              bottom: "25px",
             }}
+            onClick={showModal}
           >
-            <Button
-              icon={<PlusOutlined />}
-              style={{
-                fontSize: "14px",
-                width: 170,
-                height: 40,
-                backgroundColor: "rgb(104,188,131)",
-                color: "#FFF",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bottom: "25px",
-              }}
-              onClick={showModal}
-            >
-              New Template
-            </Button>
-            <Button
-              icon={<AutorenewIcon fontSize="small" />}
-              style={{
-                fontSize: "14px",
-                width: 110,
-                height: 40,
-                backgroundColor: "#7fa0fb",
-                color: "#FFF",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bottom: "25px",
-              }}
-              loading={refreshing}
-              onClick={handleRefresh}
-            >
-              Refresh
-            </Button>
-          </div>
+            New Template
+          </Button>
           <div style={{ marginTop: "10px" }}>
-            <EnhancedTable />
+            <EnhancedTable tableData={tableData}/>
           </div>
           <Modal
             title="New Template"
@@ -335,24 +314,10 @@ export default function EmailTemplatesPage() {
                     borderRadius: activeButton === "html" ? "0px" : "4px",
                     borderBottom: activeButton === "html" ? "solid" : "none",
                   }}
-                  onClick={handleHtmlButtonClick}
+                  onClick={() => handleInputType("html")}
                 >
                   HTML
                 </Button_m>
-                {htmlButtonClicked && (
-                  <Button_m
-                    variant="text"
-                    size="large"
-                    style={{
-                      borderRadius: activeButton === "render" ? "0px" : "4px",
-                      borderBottom:
-                        activeButton === "render" ? "solid" : "none",
-                    }}
-                    onClick={handleRenderButtonClick}
-                  >
-                    Render
-                  </Button_m>
-                )}
               </div>
               {inputType === "text" && (
                 <TextField
@@ -364,7 +329,7 @@ export default function EmailTemplatesPage() {
                   value={formData.text_data || ""}
                   onChange={handleFormChange}
                   multiline={true}
-                  rows="16"
+                  rows="13.5"
                   // rowsMax="25"
                   variant="outlined"
                   fullWidth={true}
@@ -372,50 +337,14 @@ export default function EmailTemplatesPage() {
               )}
               {inputType === "html" && (
                 <div style={{ marginTop: "10px" }}>
-                  <CodeMirror
+                  <JoditEditor
+                    ref={editor}
                     value={formData.html_data || ""}
-                    onChange={(value, viewUpdate) =>
-                      setFormData((prevData) => ({
-                        ...prevData,
-                        html_data: value,
-                      }))
-                    }
-                    height="400px"
-                    theme={vscodeDark}
-                    extensions={[javascript({ jsx: true }), html()]}
-                    placeholder={"Code here..."}
-                    style={{ border: "1px solid #e5e5e5", borderRadius: "4px" }}
+                    tabIndex={1}
+                    config={config}
+                    onBlur={handleHtmlChange}
+                    onChange={() => {}}
                   />
-                </div>
-              )}
-              {inputType === "render" && (
-                <div style={{ marginTop: "10px" }}>
-                  {formData.html_data ? (
-                    <iframe
-                      ref={iframeRef}
-                      title="Rendered HTML"
-                      width="100%"
-                      height="400px"
-                      style={{
-                        border: "1px solid #e5e5e5",
-                        borderRadius: "4px",
-                      }}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        border: "1px solid #e5e5e5",
-                        borderRadius: "4px",
-                        height: "400px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        color: "#999",
-                      }}
-                    >
-                      No HTML content to display
-                    </div>
-                  )}
                 </div>
               )}
             </Box>

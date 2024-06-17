@@ -19,11 +19,6 @@ const EmailSentDonut = ({ total, emailsent }) => {
     return <div></div>; 
   }
 
-
-  console.log("total", total);
-  console.log("emailsent", emailsent);
-
-
   const notSent = total - emailsent;
   const data = {
     Sent: emailsent,

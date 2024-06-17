@@ -2,13 +2,11 @@ import React, { useState, useEffect } from "react";
 import UDashboardLayout from "@/layouts/UDashboardLayout";
 import { useNavigate, useParams } from "react-router-dom";
 import { Divider, Button, Modal, Card, Typography } from "antd";
-import Linecharts from "@/components/charts/line-charts/Linecharts";
+// import Linecharts from "@/components/charts/line-charts/Linecharts";
 // import EnhancedTable from "@/components/data-table/RcampaingsTable";
-import EnhancedTable from "@/components/data-table/URcampaignsTable";
-
+import EnhancedTable from "@/components/data-table/uRcampaignsTable";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import AssessmentIcon from "@mui/icons-material/Assessment";
-import DeleteIcon from "@mui/icons-material/Delete";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import EmailSentDonut from "@/components/charts/donut-charts/emailSentDonut";
 import EmailOpenDonut from "@/components/charts/donut-charts/emailOpenDonut";
@@ -30,6 +28,9 @@ export default function URCampaignsPage() {
   };
   const { cam_id } = useParams();
 
+  if (isNaN(cam_id)) {
+    navigate("/*");
+  }
   const [total, setTotal] = useState();
   const [emailsent, setEmailsent] = useState();
   const [emailopened, setEmailopened] = useState();
@@ -102,6 +103,11 @@ export default function URCampaignsPage() {
       if (error.response.status === 404){
         console.log(error.response.data.msg);
         navigate("/campaigns");
+      }else if (error.response.status === 403){
+        console.log(error.response.data.msg);
+        navigate("/unauthorized");
+
+
       }
     }
   };
@@ -139,29 +145,29 @@ export default function URCampaignsPage() {
     }
   };
 
-  //Finish Campaign 
-  const handleFinish = async () => {
-    try {
-      const response = await axiosPrivate.get(
-        `finish_campaign/${cam_id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${JSON.parse(access_token)}`,
-          },
-        }
-      );
-      if (response) {
-        console.log("Set Finish Campaign successful!");
-        setIsFinished("- (Finished Campaign)");
+  // //Finish Campaign 
+  // const handleFinish = async () => {
+  //   try {
+  //     const response = await axiosPrivate.get(
+  //       `finish_campaign/${cam_id}`,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${JSON.parse(access_token)}`,
+  //         },
+  //       }
+  //     );
+  //     if (response) {
+  //       console.log("Set Finish Campaign successful!");
+  //       setIsFinished("- (Finished Campaign)");
 
-        getDataTargetResult();
-        showModalFinish(false);
-      }
-    } catch (error) {
-      console.error("Error Set Finish Campaign:", error);
-      console.log(error);
-    }
-  };
+  //       getDataTargetResult();
+  //       showModalFinish(false);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error Set Finish Campaign:", error);
+  //     console.log(error);
+  //   }
+  // };
 
 
 
@@ -212,6 +218,7 @@ export default function URCampaignsPage() {
                 alignItems: "center",
                 justifyContent: "center",
               }}
+              onClick={handleExportXLSX}
             >
               Export As CSV
             </Button>
@@ -243,16 +250,16 @@ export default function URCampaignsPage() {
             <Linecharts />
           </div> */}
           <div style={{ display: "flex" }}>
-            <EmailSentDonut emailsent={emailsent} />
-            <EmailOpenDonut emailopened={emailopened} />
-            <ClickedLinkDonut clickedlink={clickedlink} />
-            <SummittedDataDonut summitdata={summitdata} />
+            <EmailSentDonut total={total} emailsent={emailsent} />
+            <EmailOpenDonut total={total}  emailopened={emailopened} />
+            <ClickedLinkDonut total={total}  clickedlink={clickedlink} />
+            <SummittedDataDonut total={total}  summitdata={summitdata} />
           </div>
           <div style={{ paddingTop: "10px", paddingBottom: "10px" }}>
             <Typography.Title level={1}>Details</Typography.Title>
           </div>
           <div style={{ marginTop: "10px" }}>
-            <EnhancedTable />
+            <EnhancedTable data={target || []}/>
           </div>
         </Card>
       </UDashboardLayout>

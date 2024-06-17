@@ -45,7 +45,7 @@ def validate_strip(profile_name, name):
 
 @email_template_ns.route("/")
 class TemplateManagments(Resource):
-    # @jwt_required()
+    @jwt_required()
     @email_template_ns.expect(email_template_model)
     def post(self):
 
@@ -102,7 +102,7 @@ class TemplateManagments(Resource):
             jsonify({"msg": "Email Template Created"}), HTTP_201_CREATED
         )
 
-    # @jwt_required()
+    @jwt_required()
     def get(self):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -132,7 +132,7 @@ class TemplateManagments(Resource):
 
 @email_template_ns.route("/<int:id>")
 class TemplateManagment(Resource):
-    # @jwt_required()
+    @jwt_required()
     def delete(self, id):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -150,7 +150,7 @@ class TemplateManagment(Resource):
 
         return make_response(jsonify({"msg": "Email Template Deleted"}), HTTP_200_OK)
 
-    # @jwt_required()
+    @jwt_required()
     def put(self, id):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -245,7 +245,7 @@ class TemplateManagment(Resource):
 
         return make_response(jsonify({"msg": "Email Template Updated"}), HTTP_200_OK)
 
-    # @jwt_required()
+    @jwt_required()
     def get(self, id):
         # permission_check = check_admin_permission()
         # if permission_check:

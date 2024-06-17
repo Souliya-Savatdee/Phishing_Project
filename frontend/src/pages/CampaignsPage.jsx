@@ -3,10 +3,19 @@ import React, { useState, useEffect } from "react";
 import { Divider, Button, Modal, Card, Typography } from "antd";
 
 import CloseIcon from "@mui/icons-material/Close";
-
+import AutorenewIcon from "@mui/icons-material/Autorenew";
+import { useNavigate } from "react-router-dom";
 import { PlusOutlined } from "@ant-design/icons";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
-import { TextField, MenuItem, Box, IconButton, Alert, AlertTitle, Collapse } from "@mui/material";
+import {
+  TextField,
+  MenuItem,
+  Box,
+  IconButton,
+  Alert,
+  AlertTitle,
+  Collapse,
+} from "@mui/material";
 
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -17,6 +26,8 @@ import dayjs from "dayjs";
 
 export default function CampaignsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
   const [name, setName] = useState("");
   const [endDate, setEndDate] = useState(null);
   const [userBelongOptions, setUserBelongOptions] = useState([]);
@@ -54,6 +65,7 @@ export default function CampaignsPage() {
     smtp_id: "",
     completed_date: "",
   });
+  const navigate = useNavigate();
 
   const showNameError = nameTouched && !formData.cam_name;
   const showEndDateError = endDateTouched && !formData.completed_date;
@@ -146,7 +158,6 @@ export default function CampaignsPage() {
   //Create Campaign Page
   const handleLauch = async (event) => {
     event.preventDefault();
-    // Add validation check before form submission
     if (
       !formData.cam_name ||
       !formData.user_id ||
@@ -166,7 +177,7 @@ export default function CampaignsPage() {
 
       setAlertSeverity("error");
       setServerResponse("End date is required");
-      setShow(true)
+      setShow(true);
       return;
     }
 
@@ -219,7 +230,15 @@ export default function CampaignsPage() {
       console.log(serverResponse);
       setShow(true);
     }
-
+  };
+  
+  const handleRefresh = () => {
+    setRefreshing(true);
+    navigate(`/refresh`);
+    setTimeout(() => {
+      navigate(`/campaigns`);
+      setRefreshing(false);
+    });
   };
 
   return (
@@ -239,23 +258,49 @@ export default function CampaignsPage() {
             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
           }}
         >
-          <Button
-            icon={<PlusOutlined />}
+          <div
             style={{
-              fontSize: "14px",
-              width: 170,
-              height: 40,
-              backgroundColor: "rgb(104,188,131)",
-              color: "#FFF",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              bottom: "25px",
+              justifyContent: "space-between",
+              gap: "10px",
             }}
-            onClick={showModal}
           >
-            New Campaign
-          </Button>
+            <Button
+              icon={<PlusOutlined />}
+              style={{
+                fontSize: "14px",
+                width: 170,
+                height: 40,
+                backgroundColor: "rgb(104,188,131)",
+                color: "#FFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bottom: "25px",
+              }}
+              onClick={showModal}
+            >
+              New Campaign
+            </Button>
+            <Button
+              icon={<AutorenewIcon fontSize="small" />}
+              style={{
+                fontSize: "14px",
+                width: 110,
+                height: 40,
+                backgroundColor: "#7fa0fb",
+                color: "#FFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bottom: "25px",
+              }}
+              loading={refreshing}
+              onClick={handleRefresh}
+            >
+              Refresh
+            </Button>
+          </div>
           <div style={{ marginTop: "10px" }}>
             <EnhancedTable />
           </div>

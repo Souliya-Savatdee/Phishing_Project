@@ -1,7 +1,18 @@
 import React, { useState } from "react";
 import { Typography, Card, Divider, Button, Modal } from "antd";
-import { TextField, MenuItem, Box, IconButton, Alert, AlertTitle, Collapse } from "@mui/material";
-import CloseIcon from '@mui/icons-material/Close';
+import {
+  TextField,
+  MenuItem,
+  Box,
+  IconButton,
+  Alert,
+  AlertTitle,
+  Collapse,
+} from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+import AutorenewIcon from "@mui/icons-material/Autorenew";
+
+import { useNavigate } from "react-router-dom";
 import { PlusOutlined } from "@ant-design/icons";
 import EnhancedTable from "@/components/data-table/UserManagementTable";
 import DashboardLayout from "@/layouts/DashboardLayout";
@@ -10,9 +21,10 @@ import useAxiosInterceptor from "@/middleware/interceptors";
 
 export default function UserManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Alert
-  const [show, setShow] = useState(false); 
+  const [show, setShow] = useState(false);
   const [alertSeverity, setAlertSeverity] = useState("error");
   const [serverResponse, setServerResponse] = useState("");
 
@@ -28,7 +40,9 @@ export default function UserManagementPage() {
     confirm_password: "",
     role: "",
   });
-  
+  const navigate = useNavigate();
+
+
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setFormData((prevData) => ({
@@ -40,44 +54,39 @@ export default function UserManagementPage() {
   // require
   const showEmailError = emailTouched && !formData.email;
   const showPasswordError = passwordTouched && !formData.password;
-  const showConfirmPasswordError = confirm_passwordTouched &&!formData.confirm_password;
-  const showRoleError = roleTouched &&!formData.role;
-  
+  const showConfirmPasswordError =
+    confirm_passwordTouched && !formData.confirm_password;
+  const showRoleError = roleTouched && !formData.role;
+
   const axiosPrivate = useAxiosInterceptor();
-  
+
   const showModal = () => {
     setIsModalOpen(true);
   };
-  
+
   const handleCancel = () => {
     setIsModalOpen(false);
   };
-  
-  
+
   const roleOptions = [
     { value: 1, label: "Admin" },
     { value: 2, label: "User" },
   ];
   const access_token = localStorage.getItem("access_token");
 
-
   //Create User
   const onSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await axiosPrivate.post(
-        "user/",
-        formData,
-        {
-          headers: {
-            'Authorization': `Bearer ${JSON.parse(access_token)}`,
-          },
-        }
-      );
-      
+      const response = await axiosPrivate.post("user/", formData, {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
+      });
+
       setAlertSeverity("success");
       setServerResponse(response.data.msg);
-      setShow(true)
+      setShow(true);
 
       setFormData({
         email: "",
@@ -85,7 +94,7 @@ export default function UserManagementPage() {
         confirm_password: "",
         role: "",
       });
-      
+
       setEmailTouched(false);
       setPasswordTouched(false);
       setConfirmPasswordTouched(false);
@@ -95,14 +104,25 @@ export default function UserManagementPage() {
         setShow(false);
         setIsModalOpen(false);
       }, 1500);
-      
     } catch (error) {
       setAlertSeverity("error");
       setServerResponse(error.response.data.msg);
       console.log(serverResponse);
-      setShow(true)
-
+      setShow(true);
     }
+  };
+  
+
+
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    navigate(`/refresh`);
+    setTimeout(() => {
+    navigate(`/user-management`);
+
+      setRefreshing(false);
+    }, );
   };
 
   return (
@@ -122,23 +142,49 @@ export default function UserManagementPage() {
             boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
           }}
         >
-          <Button
-            icon={<PlusOutlined />}
+          <div
             style={{
-              fontSize: "14px",
-              width: 140,
-              height: 40,
-              backgroundColor: "rgb(104,188,131)",
-              color: "#FFF",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              bottom: "25px",
+              justifyContent: "space-between",
+              gap: "10px",
             }}
-            onClick={showModal}
           >
-            New User
-          </Button>
+            <Button
+              icon={<PlusOutlined />}
+              style={{
+                fontSize: "14px",
+                width: 140,
+                height: 40,
+                backgroundColor: "rgb(104,188,131)",
+                color: "#FFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bottom: "25px",
+              }}
+              onClick={showModal}
+            >
+              New User
+            </Button>
+            <Button
+              icon={<AutorenewIcon fontSize="small" />}
+              style={{
+                fontSize: "14px",
+                width: 110,
+                height: 40,
+                backgroundColor: "#7fa0fb",
+                color: "#FFF",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bottom: "25px",
+              }}
+              loading={refreshing}
+              onClick={handleRefresh}
+            >
+              Refresh
+            </Button>
+          </div>
           <div style={{ marginTop: "10px" }}>
             <EnhancedTable />
           </div>
@@ -176,10 +222,10 @@ export default function UserManagementPage() {
         >
           <Divider style={{ borderTopColor: "#d5d5d5" }} />
           {show ? (
-                    <>
-                    <Box sx={{ width: '100%' }}>
-                    <Collapse in={show}>
-                    <Alert
+            <>
+              <Box sx={{ width: "100%" }}>
+                <Collapse in={show}>
+                  <Alert
                     severity={alertSeverity}
                     action={
                       <IconButton
@@ -195,13 +241,15 @@ export default function UserManagementPage() {
                     }
                     sx={{ mb: 2 }}
                   >
-                    <AlertTitle>{alertSeverity === "success" ? "Success" : "Error"}</AlertTitle>
-                     <span>{serverResponse}</span>
+                    <AlertTitle>
+                      {alertSeverity === "success" ? "Success" : "Error"}
+                    </AlertTitle>
+                    <span>{serverResponse}</span>
                   </Alert>
-                  </Collapse>
-                  </Box>
-                    </>
-                  ) : null}
+                </Collapse>
+              </Box>
+            </>
+          ) : null}
           <Box
             component="form"
             sx={{
@@ -214,18 +262,17 @@ export default function UserManagementPage() {
             <div>
               <TextField
                 error={showEmailError}
-                helperText={showEmailError? "Email is required" : ""}
+                helperText={showEmailError ? "Email is required" : ""}
                 label="Email"
                 name="email"
                 variant="outlined"
                 value={formData.email}
                 onBlur={() => setEmailTouched(true)}
                 onChange={handleInputChange}
-
               />
               <TextField
                 error={showPasswordError}
-                helperText={showPasswordError? "Password is required" : ""}
+                helperText={showPasswordError ? "Password is required" : ""}
                 label="Password"
                 name="password"
                 variant="outlined"
@@ -237,7 +284,9 @@ export default function UserManagementPage() {
               />
               <TextField
                 error={showConfirmPasswordError}
-                helperText={showConfirmPasswordError? "Confirm Password is required" : ""}
+                helperText={
+                  showConfirmPasswordError ? "Confirm Password is required" : ""
+                }
                 label="Confirm Password"
                 name="confirm_password"
                 variant="outlined"
@@ -249,7 +298,7 @@ export default function UserManagementPage() {
               />
               <TextField
                 error={showRoleError}
-                helperText={showRoleError? "Role is required" : ""}
+                helperText={showRoleError ? "Role is required" : ""}
                 select
                 label="Role"
                 name="role"

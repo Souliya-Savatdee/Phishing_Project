@@ -576,7 +576,7 @@ export default function EnhancedTable() {
                           />
                           <Button
                             icon={<DeleteRoundedIcon />}
-                            onClick={() => showModal_Delete(row)}
+                            onClick={() => showModal_Delete(row.group_id)}
                             style={{
                               fontSize: "16px",
                               width: 70,

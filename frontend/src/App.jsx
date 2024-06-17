@@ -17,8 +17,12 @@ import UUserManagementPage from "@/pages/uPages/UUserManagementPage";
 
 import NotFoundPage from "@/pages/NotFoundPage";
 import Unauthorized from "@/pages/Unauthorized";
+import Refresh from "@/pages/Refresh";
 import RequireAuth from "@/require/RequestAuth";
 import Persist from "@/middleware/persistent";
+
+
+
 
 import "./App.css";
 
@@ -46,6 +50,7 @@ export default function App() {
               <Route path="/landing-pages" element={<LandingPage />} />
               <Route path="/sending-profiles" element={<SendingProfilesPage />}/>
               <Route path="/user-management" element={<UserManagementPage />} />
+              <Route path="/refresh" element={<Refresh />} />
             </Route>
 
             {/* User Role */}
@@ -62,6 +67,7 @@ export default function App() {
               <Route path="/u/dashboard" element={<UDashboardPage />} />
               <Route path="/u/campaigns" element={<UCampaignsPage />} />
               <Route path="/u/campaigns/result/:cam_id" element={<URCampaignsPage />} />
+              <Route path="/refresh" element={<Refresh />} />
             </Route>
           </Route>
           <Route path="/login" element={<LoginPage />} />

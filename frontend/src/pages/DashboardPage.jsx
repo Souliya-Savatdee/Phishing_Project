@@ -8,8 +8,10 @@ import EnhancedTable from "@/components/data-table/DashboardTable";
 import useAxiosInterceptor from "@/middleware/interceptors";
 
 export default function DashboardPage() {
-  const [rows, setResultsData] = useState([]);
+  const [totalSum, setTotalSum] = useState(0);
+  const [successSum, setSuccessSum] = useState(0);
 
+  const [resultData, setResultData] = useState([]);
   const navigate = useNavigate();
 
   const handleViewAllClick = () => {
@@ -20,41 +22,49 @@ export default function DashboardPage() {
   const axiosPrivate = useAxiosInterceptor();
   const access_token = localStorage.getItem("access_token") || " ";
 
-  // useEffect(() => {
-  //   getData();
-  // }, []);
+  useEffect(() => {
+    getData();
+  }, []);
 
-  // const getData = async () => {
-  //   try {
-  //     const response = await axiosPrivate.get("campaign/dashboard/", {
-  //       headers: {
-  //         Authorization: `Bearer ${JSON.parse(access_token)}`,
-  //       },
-  //     });
+  const getData = async () => {
+    try {
+      const response = await axiosPrivate.get("campaign/dashboard/", {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
+      });
 
-  //     const data = response.data;
-  //     // console.log(data);
-  //     if (data.result && data.result.length > 0) {
-  //       const campaignData = data.result.map((result) => ({
-  //         cam_id: result.cam_id,
-  //         cam_name: result.cam_name,
-  //         create_date: result.create_date,
-  //         sent: result.status.send_mail,
-  //         open: result.status.open,
-  //         click: result.status.click,
-  //         submit: result.status.submit,
-  //       }));
+      const data = response.data;
+      if (data.result && data.result.length > 0) {
+        const campaignData = data.result.map((result) => ({
+          cam_id: result.cam_id,
+          cam_name: result.cam_name,
+          create_date: result.create_date,
+          completed_date: result.completed_date,
+          total: result.status.total,
+          success: result.status.submit,
 
-  //       // console.log("Campaign Data:", campaignData);
+          // sent: result.status.send_mail,
+          // open: result.status.open,
+          // click: result.status.click,
+          // submit: result.status.submit,
+        }));
 
-  //       // setCampaigns(campaignData);
-  //     } else {
-  //       console.log("No result found");
-  //     }
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
+        const totalSum = campaignData.reduce((acc, curr) => acc + curr.total, 0);
+        const successSum = campaignData.reduce((acc, curr) => acc + curr.success, 0);
+
+
+        setResultData(campaignData);
+        setTotalSum(totalSum);
+        setSuccessSum(successSum);
+        
+      } else {
+        console.log("No result found");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -74,8 +84,8 @@ export default function DashboardPage() {
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <Linecharts />
-            <Donutcharts />
+            <Linecharts resultData={resultData}/>
+            <Donutcharts totalSum={totalSum} successSum = {successSum}/>
           </div>
           <div style={{ paddingBottom: "24px" }}>
             <Typography.Title level={1}>Recent Campaigns</Typography.Title>

@@ -59,7 +59,7 @@ def validate_strip(profile_name, name):
 @campaign_ns.route("/")
 class CampaignManagments(Resource):
 
-    # @jwt_required()
+    @jwt_required()
     @campaign_ns.expect(campaign_model)
     def post(self):
         # permission_check = check_admin_permission()
@@ -187,7 +187,7 @@ class CampaignManagments(Resource):
                 jsonify({"msg": "Error creating campaign", "error": str(e)}), HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-    # @jwt_required()
+    @jwt_required()
     def get(self):
         # permission_check = check_admin_permission()
         # if permission_check:
@@ -214,7 +214,7 @@ class CampaignManagments(Resource):
 
 @campaign_ns.route("/<int:id>")
 class CampaignManagment(Resource):
-    # @jwt_required()
+    @jwt_required()
 
     def delete(self, id):
         # permission_check = check_admin_permission()
@@ -249,13 +249,13 @@ class CampaignManagment(Resource):
         )
 
 
-@campaign_ns.route("/user/<uuid:id>")
+@campaign_ns.route("/user/<uuid:uid>")
 class CampaignManagment(Resource):
 
-    # @jwt_required()
-    def get(self, id):
+    @jwt_required()
+    def get(self, uid):
         
-        db_campaigns = db.session.query(Campaign).filter_by(user_id=id).all()
+        db_campaigns = db.session.query(Campaign).filter_by(user_id = uid).all()
         data = []
 
         if not db_campaigns:
@@ -280,6 +280,8 @@ class CampaignManagment(Resource):
 
 @campaign_ns.route("/dashboard/")
 class DashboardCampaign(Resource):
+    @jwt_required()
+    
     def get(self):
         db_campaign = db.session.query(Campaign).all()
         data = []
@@ -309,6 +311,48 @@ class DashboardCampaign(Resource):
                         },
                         "modified_date": modified_date,
                         "create_date": campaign.created_date.strftime("%Y-%m-%d"),
+                        "completed_date": campaign.completed_date.strftime("%Y-%m-%d"),
+                        
+                    }
+                )
+
+        return make_response(jsonify({"result": data}), HTTP_200_OK)
+
+@campaign_ns.route("/dashboard/<uuid:uid>")
+class DashboardCampaign(Resource):
+    @jwt_required()
+    
+    def get(self, uid):
+        db_campaign = db.session.query(Campaign).filter_by(user_id = uid).all()
+        data = []
+        
+        for campaign in db_campaign:
+            for result in campaign.results:
+                status = result.status
+                status_list = [int(num.strip()) for num in status.split("|")]
+
+                if result.modified_date:
+                    modified_date = result.modified_date.strftime("%Y-%m-%d")
+                else:
+                    modified_date = None
+
+                data.append(
+                    {
+                        "cam_name": campaign.cam_name,
+                        "cam_id": result.cam_id,
+                        "email": result.email,
+                        "status": {
+                            "total": status_list[0],
+                            "send_mail": status_list[1],
+                            "open": status_list[2],
+                            "click": status_list[3],
+                            "submit": status_list[4],
+                            "error": status_list[5],
+                        },
+                        "modified_date": modified_date,
+                        "create_date": campaign.created_date.strftime("%Y-%m-%d"),
+                        "completed_date": campaign.completed_date.strftime("%Y-%m-%d"),
+                        
                     }
                 )
 
@@ -323,6 +367,8 @@ class DashboardCampaign(Resource):
 
 @campaign_ns.route("/alldata")
 class AllData(Resource):
+    @jwt_required()
+    
     def get(self):
 
         db_users = db.session.query(User).all()
@@ -361,6 +407,8 @@ class AllData(Resource):
 
 @campaign_ns.route("/finish_campaign/<int:id>")
 class FinishCampaign(Resource):
+    @jwt_required()
+    
     def get(self, id):
         db_campaign = db.session.query(Campaign).filter_by(cam_id=id).first()
         if not db_campaign:

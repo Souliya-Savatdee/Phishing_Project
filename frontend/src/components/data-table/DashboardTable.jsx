@@ -30,7 +30,7 @@ import ErrorRoundedIcon from "@mui/icons-material/ErrorRounded";
 import GridViewRoundedIcon from "@mui/icons-material/GridViewRounded";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { visuallyHidden } from "@mui/utils";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import SearchIcon from "@mui/icons-material/Search";
 import useAxiosInterceptor from "@/middleware/interceptors";
@@ -324,24 +324,6 @@ export default function EnhancedTable() {
     setSelected([]);
   };
 
-  const handleClick = (event, id) => {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
-    }
-    setSelected(newSelected);
-  };
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);

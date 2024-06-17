@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -16,7 +16,6 @@ import {
   LinearProgress,
   TextField,
   Button as Button_m,
-  MenuItem,
   IconButton,
   Alert,
   AlertTitle,
@@ -29,8 +28,12 @@ import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 
-import JoditEditor from "jodit-react";
 import useAxiosInterceptor from "@/middleware/interceptors";
+
+import CodeMirror from "@uiw/react-codemirror";
+import { vscodeDark } from "@uiw/codemirror-theme-vscode";
+import { javascript } from "@codemirror/lang-javascript";
+import { html } from "@codemirror/lang-html";
 
 function createData(
   id,
@@ -236,7 +239,7 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
   );
 }
 
-export default function EnhancedTable({ tableData }) {
+export default function EnhancedTable() {
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("last_modified_date");
   const [selected, setSelected] = useState([]);
@@ -247,9 +250,10 @@ export default function EnhancedTable({ tableData }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [setModalOpen, setModalOpen_Delete] = useState(false);
 
-  const [activeButton, setActiveButton] = useState("");
   const [inputType, setInputType] = useState("");
-  const editor = useRef(null);
+  const [activeButton, setActiveButton] = useState("");
+  const [htmlButtonClicked, setHtmlButtonClicked] = useState(false);
+  const iframeRef = useRef(null);
 
   //Alert
   const [show, setShow] = useState(false);
@@ -272,63 +276,6 @@ export default function EnhancedTable({ tableData }) {
 
   const showTemplateNameError = templateNameTouched && !formData.temp_name;
   const showSubjectError = subjectTouched && !formData.subject;
-
-  const options = [
-    "bold",
-    "italic",
-    "underline",
-    "strikethrough",
-    "|",
-    "align",
-    "ul",
-    "ol",
-    "|",
-    "font",
-    "fontsize",
-    "brush",
-    "paragraph",
-    "source",
-    "|",
-    "outdent",
-    "indent",
-    "align",
-    "|",
-    "hr",
-    "|",
-    "fullsize",
-    "brush",
-    "|",
-    "table",
-    "link",
-    "eraser",
-    "|",
-    "undo",
-    "redo",
-  ];
-  const config = useMemo(
-    () => ({
-      readonly: false,
-      placeholder: "",
-      defaultActionOnPaste: "insert_as_html",
-      defaultLineHeight: 1.5,
-      enter: "div",
-      // options that we defined in above step.
-      buttons: options,
-      buttonsMD: options,
-      buttonsSM: options,
-      buttonsXS: options,
-      statusbar: false,
-      sizeLG: 900,
-      sizeMD: 700,
-      sizeSM: 400,
-      toolbarAdaptive: false,
-      height: 350,
-      toolbarButtonSize: "small",
-      toolbar: true,
-      showCharsCounter: false,
-    }),
-    []
-  );
 
   const axiosPrivate = useAxiosInterceptor();
   const access_token = localStorage.getItem("access_token") || " ";
@@ -407,6 +354,42 @@ export default function EnhancedTable({ tableData }) {
     getComparator(order, orderBy)
   ).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+  const handleHtmlButtonClick = () => {
+    setInputType("html");
+    setActiveButton("html");
+    setHtmlButtonClicked(true);
+  };
+
+  const handleRenderButtonClick = () => {
+    setInputType("render");
+    setActiveButton("render");
+    const iframe = iframeRef.current;
+
+    if (iframe) {
+      const fullPageButton = `
+      <button id="fullPageBtn" style="position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 5px 10px; font-size: 12px; background-color: #d5d5d5; color: white; border: none; border-radius: 3px; cursor: pointer;">
+        Full Page
+      </button>
+      <script>
+        document.getElementById('fullPageBtn').addEventListener('click', function() {
+          const iframe = window.frameElement;
+          if (iframe.requestFullscreen) {
+            iframe.requestFullscreen();
+          } else if (iframe.mozRequestFullScreen) { /* Firefox */
+            iframe.mozRequestFullScreen();
+          } else if (iframe.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+            iframe.webkitRequestFullscreen();
+          } else if (iframe.msRequestFullscreen) { /* IE/Edge */
+            iframe.msRequestFullscreen();
+          }
+        });
+      </script>
+    `;
+
+      iframe.srcdoc = formData.html_data + fullPageButton;
+    }
+  };
+
   // EDIT
   const showModal = () => {
     setIsModalOpen(true);
@@ -476,10 +459,6 @@ export default function EnhancedTable({ tableData }) {
   const handleFormChange = (event) => {
     const { name, value } = event.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
-  };
-
-  const handleHtmlChange = (content) => {
-    setFormData((prevData) => ({ ...prevData, html_data: content }));
   };
 
   // DELETE
@@ -741,10 +720,23 @@ export default function EnhancedTable({ tableData }) {
                   borderRadius: activeButton === "html" ? "0px" : "4px",
                   borderBottom: activeButton === "html" ? "solid" : "none",
                 }}
-                onClick={() => handleInputType("html")}
+                onClick={handleHtmlButtonClick}
               >
                 HTML
               </Button_m>
+              {htmlButtonClicked && (
+                <Button_m
+                  variant="text"
+                  size="large"
+                  style={{
+                    borderRadius: activeButton === "render" ? "0px" : "4px",
+                    borderBottom: activeButton === "render" ? "solid" : "none",
+                  }}
+                  onClick={handleRenderButtonClick}
+                >
+                  Render
+                </Button_m>
+              )}
             </div>
             {inputType === "text" && (
               <TextField
@@ -756,7 +748,7 @@ export default function EnhancedTable({ tableData }) {
                 value={formData.text_data || ""}
                 onChange={handleFormChange}
                 multiline={true}
-                rows="13.5"
+                rows="15.5"
                 // rowsMax="20"
                 variant="outlined"
                 fullWidth={true}
@@ -764,14 +756,50 @@ export default function EnhancedTable({ tableData }) {
             )}
             {inputType === "html" && (
               <div style={{ marginTop: "10px" }}>
-                <JoditEditor
-                  ref={editor}
+                <CodeMirror
                   value={formData.html_data || ""}
-                  tabIndex={1}
-                  config={config}
-                  onBlur={handleHtmlChange}
-                  onChange={() => {}}
+                  onChange={(value, viewUpdate) =>
+                    setFormData((prevData) => ({
+                      ...prevData,
+                      html_data: value,
+                    }))
+                  }
+                  height="400px"
+                  theme={vscodeDark}
+                  extensions={[javascript({ jsx: true }), html()]}
+                  placeholder={"Code here..."}
+                  style={{ border: "1px solid #e5e5e5", borderRadius: "4px" }}
                 />
+              </div>
+            )}
+            {inputType === "render" && (
+              <div style={{ marginTop: "10px" }}>
+                {formData.html_data ? (
+                  <iframe
+                    ref={iframeRef}
+                    title="Rendered HTML"
+                    width="100%"
+                    height="400px"
+                    style={{
+                      border: "1px solid #e5e5e5",
+                      borderRadius: "4px",
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      border: "1px solid #e5e5e5",
+                      borderRadius: "4px",
+                      height: "400px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#999",
+                    }}
+                  >
+                    No HTML content to display
+                  </div>
+                )}
               </div>
             )}
           </Box>
