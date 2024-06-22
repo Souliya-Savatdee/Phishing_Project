@@ -30,7 +30,7 @@ export default function RCampaignsPage() {
   const handlecampaignsClick = () => {
     navigate("/campaigns");
   };
-  
+
   const { cam_id } = useParams();
 
   const [total, setTotal] = useState();
@@ -78,6 +78,11 @@ export default function RCampaignsPage() {
       const data = response.data;
       const user = data.camData[0].user_belong;
       setUserBelong(`- (${user})`);
+      if (data.camData[0].modified_date != null && data.camData[0].modified_date !== "") {
+        setIsFinished("- (Finished Campaign)");
+      } else {
+        setIsFinished("");
+      }
 
       const target_list = data.targetData.map((target) => ({
         id: target.Amount,
@@ -163,17 +168,20 @@ export default function RCampaignsPage() {
   //Finish Campaign
   const handleFinish = async () => {
     try {
-      const response = await axiosPrivate.get(`finish_campaign/${cam_id}`, {
-        headers: {
-          Authorization: `Bearer ${JSON.parse(access_token)}`,
-        },
-      });
+      const response = await axiosPrivate.get(
+        `campaign/finish_campaign/${cam_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${JSON.parse(access_token)}`,
+          },
+        }
+      );
       if (response) {
         console.log("Set Finish Campaign successful!");
         setIsFinished("- (Finished Campaign)");
 
         getDataTargetResult();
-        showModalFinish(false);
+        setIsModalOpenFinish(false);
       }
     } catch (error) {
       console.error("Error Set Finish Campaign:", error);

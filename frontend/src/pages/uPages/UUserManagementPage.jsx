@@ -11,7 +11,7 @@ export default function UUserManagementPage() {
           title={
             <Typography.Title level={1}>
               User Management
-              <Divider style={{marginBottom:"0px"}} />
+              <Divider style={{ marginBottom: "0px" }} />
             </Typography.Title>
           }
           bordered={false}
@@ -29,4 +29,3 @@ export default function UUserManagementPage() {
     </UDashboardLayout>
   );
 }
-

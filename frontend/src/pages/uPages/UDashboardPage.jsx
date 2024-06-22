@@ -2,8 +2,8 @@ import React, { useState, useEffect } from "react";
 
 import UDashboardLayout from "@/layouts/UDashboardLayout";
 import { Typography, Card, Divider } from "antd";
-import Ulinecharts from "@/components/charts/line-charts/Ulinecharts";
-import Udonutcharts from "@/components/charts/donut-charts/Udonutcharts";
+import Ulinecharts from "@/components/charts/line-charts/uLinecharts";
+import Udonutcharts from "@/components/charts/donut-charts/uDonutcharts";
 import EnhancedTable from "@/components/data-table/uDashboardTable";
 import useAxiosInterceptor from "@/middleware/interceptors";
 import { jwtDecode } from "jwt-decode";

@@ -402,9 +402,6 @@ class AllData(Resource):
 
 
 
-
-
-
 @campaign_ns.route("/finish_campaign/<int:id>")
 class FinishCampaign(Resource):
     @jwt_required()
@@ -418,6 +415,9 @@ class FinishCampaign(Resource):
         cam_name = db_campaign.cam_name
         db_campaign.status = "Finished"
         db_campaign.completed_date = datetime.now()
+        
+        db_result = db.session.query(Result).filter_by(cam_id=db_campaign.cam_id).first()
+        db_result.modified_date = datetime.now()
 
         for target in db_campaign.group.target:
             if target.status is None or (
@@ -425,9 +425,11 @@ class FinishCampaign(Resource):
             ):
                 target.status = "Failure"
         groupId = db_campaign.group_id
-        db_group = db.session.query(Group).filter_by(group_id = groupId).first()
+        db_group = db.session.query(Group).filter_by(id = groupId).first()
         db_group.cam_id = None
+        
         db.session.commit()
+        
         file_path = file_path_excel(cam_name)
         update_excel_file(file_path)
 

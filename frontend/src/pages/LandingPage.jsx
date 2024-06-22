@@ -138,7 +138,6 @@ export default function LandingPage() {
       console.log(serverResponse);
       setShow(true);
     }
-    console.log(formData);
   };
 
   const handleRefresh = () => {

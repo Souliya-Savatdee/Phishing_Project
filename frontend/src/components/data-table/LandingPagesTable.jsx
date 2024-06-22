@@ -301,7 +301,6 @@ export default function EnhancedTable() {
           landing_page.id
         )
       );
-      console.log(formattedData);
       setUsersData(formattedData);
     } catch (error) {
       console.error("Error fetching landing page data:", error);
@@ -401,8 +400,6 @@ export default function EnhancedTable() {
 
   const editAction = (row) => {
     setSelectedID(row.page_id);
-    console.log(row);
-    console.log(row.name);
     setFormData({
       page_name: row.name,
       url: row.url,

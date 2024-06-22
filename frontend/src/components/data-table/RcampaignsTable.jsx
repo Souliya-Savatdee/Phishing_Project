@@ -1,11 +1,10 @@
-
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
-import { Button,Modal } from "antd";
+import { Button, Modal } from "antd";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
@@ -25,8 +24,16 @@ import LinearProgress from "@mui/material/LinearProgress";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
 
-
-function createData(id, firstname, lastname, email, sent, drafts, cursor, alert) {
+function createData(
+  id,
+  firstname,
+  lastname,
+  email,
+  sent,
+  drafts,
+  cursor,
+  alert
+) {
   return {
     id,
     firstname,
@@ -48,7 +55,7 @@ function createData(id, firstname, lastname, email, sent, drafts, cursor, alert)
     //   }
     // }
   };
-};
+}
 function getColorForRow(row, columnId) {
   if (columnId === "sent") {
     return row.sent === "✓" ? "#43bf7d" : "#e35e5e";
@@ -64,7 +71,6 @@ function getColorForRow(row, columnId) {
   }
   return "inherit";
 }
-
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
@@ -82,7 +88,6 @@ function getComparator(order, orderBy) {
     : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
-
 function stableSort(array, comparator) {
   const stabilizedThis = array.map((el, index) => [el, index]);
   stabilizedThis.sort((a, b) => {
@@ -96,7 +101,6 @@ function stableSort(array, comparator) {
 }
 
 const headCells = [
-
   {
     id: "firstname",
     numeric: false,
@@ -136,14 +140,18 @@ const headCells = [
     id: "cursor",
     numeric: false,
     disablePadding: false,
-    label: <AdsClickRoundedIcon style={{ fill: "#f8aa23" }} sx={{ fontSize: 18 }} />,
+    label: (
+      <AdsClickRoundedIcon style={{ fill: "#f8aa23" }} sx={{ fontSize: 18 }} />
+    ),
     sortable: true,
   },
   {
     id: "alert",
     numeric: false,
     disablePadding: false,
-    label: <ErrorRoundedIcon style={{ fill: "#e35e5e" }} sx={{ fontSize: 18 }} />,
+    label: (
+      <ErrorRoundedIcon style={{ fill: "#e35e5e" }} sx={{ fontSize: 18 }} />
+    ),
     sortable: true,
   },
   // {
@@ -156,8 +164,7 @@ const headCells = [
 ];
 
 function EnhancedTableHead(props) {
-  const { order, orderBy, onRequestSort } =
-    props;
+  const { order, orderBy, onRequestSort } = props;
   const createSortHandler = (property) => (event) => {
     onRequestSort(event, property);
   };
@@ -182,7 +189,9 @@ function EnhancedTableHead(props) {
                 {headCell.label}
                 {orderBy === headCell.id ? (
                   <Box component="span" sx={visuallyHidden}>
-                    {order === "desc" ? "sorted descending" : "sorted ascending"}
+                    {order === "desc"
+                      ? "sorted descending"
+                      : "sorted ascending"}
                   </Box>
                 ) : null}
               </TableSortLabel>
@@ -212,11 +221,11 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
     value = value > 0 ? value : 1;
     onRowsPerPageChange(value);
   };
-  
+
   const handleSearchChange = (event) => {
     const { value } = event.target;
     setSearchTerm(value);
-    onSearch(value); 
+    onSearch(value);
   };
 
   return (
@@ -226,71 +235,67 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
         pr: { xs: 1, sm: 2 },
         display: "flex",
         alignItems: "center",
-        justifyContent: "space-between", 
+        justifyContent: "space-between",
       }}
     >
-      
       <Typography
         sx={{
-        fontSize: "15px",
-        marginRight: "8px"
+          fontSize: "15px",
+          marginRight: "8px",
         }}
         id="tableTitle"
         component="div"
       >
         Show
       </Typography>
-      <TextField 
-      type="number" 
-      size="small" 
-      style = {{width: 70}}
-      value={rowsPerPage}
-      onChange={handleRowsPerPageChange}
+      <TextField
+        type="number"
+        size="small"
+        style={{ width: 70 }}
+        value={rowsPerPage}
+        onChange={handleRowsPerPageChange}
       />
       <Typography
         sx={{
-        fontSize: "15px",
-        marginLeft: "5px"
+          fontSize: "15px",
+          marginLeft: "5px",
         }}
         id="tableTitle"
         component="div"
       >
         Columns
-        </Typography>
-        <div style={{ display: "flex", alignItems: "center", marginLeft: "auto" }}>
-      <Typography
-        sx={{
-        fontSize: "15px",
-        marginRight: "5px"
-        }}
-        id="tableTitle"
-        component="div"
+      </Typography>
+      <div
+        style={{ display: "flex", alignItems: "center", marginLeft: "auto" }}
       >
-        Search:
+        <Typography
+          sx={{
+            fontSize: "15px",
+            marginRight: "5px",
+          }}
+          id="tableTitle"
+          component="div"
+        >
+          Search:
         </Typography>
-      
-      
-        <TextField
-        size="small" 
-        style = {{}}
-        value={searchTerm}
-        onChange={handleSearchChange}
-        InputProps={{
-          endAdornment: (
-            <SearchIcon style={{ marginRight: "8px", color: "gray" }} />
-          ),
-        }}
-        />
 
+        <TextField
+          size="small"
+          style={{}}
+          value={searchTerm}
+          onChange={handleSearchChange}
+          InputProps={{
+            endAdornment: (
+              <SearchIcon style={{ marginRight: "8px", color: "gray" }} />
+            ),
+          }}
+        />
       </div>
-      
-     
     </Toolbar>
   );
 }
 
-
-export default function EnhancedTable({data=[]}) {
+export default function EnhancedTable({ data = [] }) {
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("lastname");
   const [selected, setSelected] = useState([]);
@@ -299,10 +304,9 @@ export default function EnhancedTable({data=[]}) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  
-    const handleCancel = () => {
-      setIsModalOpen(false);
-    };
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -319,7 +323,6 @@ export default function EnhancedTable({data=[]}) {
     setSelected([]);
   };
 
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -335,17 +338,14 @@ export default function EnhancedTable({data=[]}) {
 
   const isSelected = (id) => selected.indexOf(id) !== -1;
 
-  const filteredRows = data.filter(row => {
-    return (
-      row.firstname.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const filteredRows = data.filter((row) => {
+    return row.firstname.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
-
-  const visibleRows = stableSort(filteredRows, getComparator(order, orderBy)).slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage,
-  );
+  const visibleRows = stableSort(
+    filteredRows,
+    getComparator(order, orderBy)
+  ).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -356,10 +356,7 @@ export default function EnhancedTable({data=[]}) {
           onSearch={setSearchTerm}
         />
         <TableContainer>
-          <Table
-            sx={{ minWidth: 750 }}
-            aria-labelledby="tableTitle"
-          >
+          <Table sx={{ minWidth: 750 }} aria-labelledby="tableTitle">
             <EnhancedTableHead
               order={order}
               orderBy={orderBy}
@@ -382,9 +379,7 @@ export default function EnhancedTable({data=[]}) {
                     selected={isItemSelected}
                     sx={{ cursor: "pointer" }}
                   >
-                    <TableCell padding="checkbox">
-
-                    </TableCell>
+                    <TableCell padding="checkbox"></TableCell>
                     <TableCell
                       component="th"
                       id={labelId}
@@ -393,28 +388,30 @@ export default function EnhancedTable({data=[]}) {
                     >
                       {row.firstname}
                     </TableCell>
+                    <TableCell align="left">{row.lastname}</TableCell>
+                    <TableCell align="left">{row.email}</TableCell>
                     <TableCell
                       align="left"
-
+                      style={{ color: getColorForRow(row, "sent") }}
                     >
-                      {row.lastname}
-                    </TableCell>
-                    <TableCell
-                      align="left"
-
-                    >
-                      {row.email}
-                    </TableCell>
-                    <TableCell align="left" style={{ color: getColorForRow(row, "sent") }}>
                       {row.sent}
                     </TableCell>
-                    <TableCell align="left" style={{ color: getColorForRow(row, "drafts") }}>
+                    <TableCell
+                      align="left"
+                      style={{ color: getColorForRow(row, "drafts") }}
+                    >
                       {row.open_email}
                     </TableCell>
-                    <TableCell align="left" style={{ color: getColorForRow(row, "cursor") }}>
+                    <TableCell
+                      align="left"
+                      style={{ color: getColorForRow(row, "cursor") }}
+                    >
                       {row.click_link}
                     </TableCell>
-                    <TableCell align="left" style={{ color: getColorForRow(row, "alert") }}>
+                    <TableCell
+                      align="left"
+                      style={{ color: getColorForRow(row, "alert") }}
+                    >
                       {row.submit_data}
                     </TableCell>
                     {/* <TableCell align="right">
@@ -444,17 +441,27 @@ export default function EnhancedTable({data=[]}) {
                         </>
                       )}
                     </TableCell> */}
-
                   </TableRow>
                 );
               })}
               {data.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={20} style={{ position: "relative" }}>
-                    <LinearProgress style={{ position: "absolute", top: 0, left: 0, right: 0 }} />
-                    <Typography align="center" sx={{
-                      fontSize: "14px",
-                      color: "#c9c9c9",}}>
+                    <LinearProgress
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                      }}
+                    />
+                    <Typography
+                      align="center"
+                      sx={{
+                        fontSize: "14px",
+                        color: "#c9c9c9",
+                      }}
+                    >
                       This might take a while to complete
                     </Typography>
                   </TableCell>
@@ -466,7 +473,7 @@ export default function EnhancedTable({data=[]}) {
         <TablePagination
           rowsPerPageOptions={[]}
           sx={{
-            "& .MuiTablePagination-displayedRows": { display: "none" }
+            "& .MuiTablePagination-displayedRows": { display: "none" },
           }}
           component="div"
           count={data.length}
@@ -475,41 +482,39 @@ export default function EnhancedTable({data=[]}) {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
-    <Modal
-    title="Delete Item"
-    centered
-    open={isModalOpen}
-    onCancel={handleCancel}
-    cancelButtonProps={{
-      style: {
-        backgroundColor: "#ff5252",
-        color: "#FFF",
-        fontSize: "13px",
-        height: "36px",
-      }
-    }}
-    cancelText="CANCEL"
-    footer={(_, { CancelBtn }) => (
-      <>
-        <CancelBtn
-        />
-        <Button
-          style={{
-            borderColor: "rgba(67,190,126,255)",
-            color: "rgba(67,190,126,255)",
-            fontSize: "13px",
-            height: "36px",
+        <Modal
+          title="Delete Item"
+          centered
+          open={isModalOpen}
+          onCancel={handleCancel}
+          cancelButtonProps={{
+            style: {
+              backgroundColor: "#ff5252",
+              color: "#FFF",
+              fontSize: "13px",
+              height: "36px",
+            },
           }}
-        >OK</Button>
-      </>
-    )}
-  >
-    <Typography>
-      Are you sure you want to delete this item?
-    </Typography>
-  </Modal>
+          cancelText="CANCEL"
+          footer={(_, { CancelBtn }) => (
+            <>
+              <CancelBtn />
+              <Button
+                style={{
+                  borderColor: "rgba(67,190,126,255)",
+                  color: "rgba(67,190,126,255)",
+                  fontSize: "13px",
+                  height: "36px",
+                }}
+              >
+                OK
+              </Button>
+            </>
+          )}
+        >
+          <Typography>Are you sure you want to delete this item?</Typography>
+        </Modal>
       </Paper>
-
     </Box>
   );
 }

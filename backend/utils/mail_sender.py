@@ -2,12 +2,14 @@ import smtplib
 import dns.resolver
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import requests
 
 from utils.format_data import unescape_html
 from utils.xlsx import edit_excel_file
 from api.tracker import get_status_counts, get_result_by_target_id, update_status_counts
 from api.models import db, Target
 
+# path = "/home/souliyasavatdee/Phishing_Project/backend/result"
 path = "/Users/souliya/Desktop/Project Phishing/backend/result/"
 
 def verify_email_smtp(email, domain_mx_records):
@@ -29,6 +31,28 @@ def verify_email_smtp(email, domain_mx_records):
 
     except Exception as e:
         print(f"SMTP verification failed for {email}: {e}")
+        return False
+
+
+def verify_email(email):
+    url = f"https://api.getprospect.com/public/v1/email/verify?email={email}"
+
+    headers = {
+        "accept": "application/json",
+        "apiKey": "d8132111-c22c-4b6b-8ab1-2d85c8c7e3ca"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  
+        data = response.json()
+        
+        if data.get("status") == "valid":
+            return True
+        else:
+            return False
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
         return False
 
 def read_file(file_path):
@@ -69,7 +93,11 @@ def send_emails(subject, sender_email, sender_password, SMTP_SERVER, SMTP_PORT, 
     if not isinstance(target_list, list):
         return
 
-    email_template = unescape_html(email_template)
+    # email_template = unescape_html(email_template)
+
+    
+
+    
     domain_mx_records = get_domain_mx_records(target_list)
     server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
     server.starttls()
@@ -83,6 +111,7 @@ def send_emails(subject, sender_email, sender_password, SMTP_SERVER, SMTP_PORT, 
             db_result = get_result_by_target_id(user_id)
             
             if not verify_email_smtp(receiver_email, domain_mx_records):
+            # if not verify_email(receiver_email):
                 counts = get_status_counts(db_result.status)
                 db_result.status = update_status_counts(counts, 5)
 

@@ -289,7 +289,6 @@ function EnhancedTableToolbar({ rowsPerPage, onRowsPerPageChange, onSearch }) {
   );
 }
 
-
 export default function EnhancedTable({data=[]}) {
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState("lastname");

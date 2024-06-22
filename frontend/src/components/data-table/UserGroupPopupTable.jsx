@@ -15,10 +15,8 @@ import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import { visuallyHidden } from "@mui/utils";
-import LinearProgress from "@mui/material/LinearProgress";
 import TextField from "@mui/material/TextField";
 import SearchIcon from "@mui/icons-material/Search";
-import EditIcon from "@mui/icons-material/Edit";
 
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {

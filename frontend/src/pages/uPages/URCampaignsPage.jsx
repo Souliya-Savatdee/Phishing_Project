@@ -17,7 +17,6 @@ import useAxiosInterceptor from "@/middleware/interceptors";
 export default function URCampaignsPage() {
   const [refreshing, setRefreshing] = useState(false);
 
-
   const [userBelong, setUserBelong] = useState("");
   const [target, setTarget] = useState([]);
   const [cam_name, setCamName] = useState("");
@@ -36,7 +35,6 @@ export default function URCampaignsPage() {
   const [emailopened, setEmailopened] = useState();
   const [clickedlink, setClickedlink] = useState();
   const [summitdata, setSummitdata] = useState();
-
 
   const showModalFinish = () => {
     setIsModalOpenFinish(true);
@@ -72,13 +70,13 @@ export default function URCampaignsPage() {
       });
 
       const data = response.data;
-      const user = data.camData[0].user_belong
-      setUserBelong(`- (${user})`)
+      const user = data.camData[0].user_belong;
+      setUserBelong(`- (${user})`);
 
       const target_list = data.targetData.map((target) => ({
         id: target.Amount,
         firstname: target.Firstname,
-        lastname: target.Lastname, 
+        lastname: target.Lastname,
         email: target.Email,
         sent: target.Error != "✗" ? "✓" : "✗",
         open_email: target["Open email"],
@@ -91,23 +89,19 @@ export default function URCampaignsPage() {
       const cam_Data = data.camData[0];
 
       setCamName(cam_Data.cam_name);
-      
+
       setTotal(cam_Data.status.total);
       setEmailsent(cam_Data.status.send_mail);
       setEmailopened(cam_Data.status.open);
       setClickedlink(cam_Data.status.click);
       setSummitdata(cam_Data.status.submit);
-
-
     } catch (error) {
-      if (error.response.status === 404){
+      if (error.response.status === 404) {
         console.log(error.response.data.msg);
         navigate("/campaigns");
-      }else if (error.response.status === 403){
+      } else if (error.response.status === 403) {
         console.log(error.response.data.msg);
         navigate("/unauthorized");
-
-
       }
     }
   };
@@ -115,27 +109,24 @@ export default function URCampaignsPage() {
   //Download Campaign File XLSX
   const handleExportXLSX = async () => {
     try {
-      const response = await axiosPrivate.get(
-        `result/download/${cam_id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${JSON.parse(access_token)}`,
-          },
-          responseType: 'blob',
-        }
-      );
+      const response = await axiosPrivate.get(`result/download/${cam_id}`, {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
+        responseType: "blob",
+      });
       if (response) {
-        
-        const blob = new Blob([response.data], { type: response.headers['content-type'] });
+        const blob = new Blob([response.data], {
+          type: response.headers["content-type"],
+        });
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `${cam_name}_result.xlsx`; 
+        a.download = `${cam_name}_result.xlsx`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-
 
         console.log("ExportXLSX successful!");
       }
@@ -145,7 +136,7 @@ export default function URCampaignsPage() {
     }
   };
 
-  // //Finish Campaign 
+  // //Finish Campaign
   // const handleFinish = async () => {
   //   try {
   //     const response = await axiosPrivate.get(
@@ -169,8 +160,6 @@ export default function URCampaignsPage() {
   //   }
   // };
 
-
-
   return (
     <>
       <UDashboardLayout>
@@ -178,8 +167,7 @@ export default function URCampaignsPage() {
           title={
             <Typography.Title level={1}>
               Results of Campaign
-              <Divider style={{marginBottom:"0px"}} />
-
+              <Divider style={{ marginBottom: "0px" }} />
             </Typography.Title>
           }
           bordered={false}
@@ -240,7 +228,7 @@ export default function URCampaignsPage() {
               Refresh
             </Button>
           </div>
-          <Divider style={{marginBottom:"0px"}} />
+          <Divider style={{ marginBottom: "0px" }} />
 
           <Typography.Title level={1}>
             Sales Branch
@@ -251,15 +239,15 @@ export default function URCampaignsPage() {
           </div> */}
           <div style={{ display: "flex" }}>
             <EmailSentDonut total={total} emailsent={emailsent} />
-            <EmailOpenDonut total={total}  emailopened={emailopened} />
-            <ClickedLinkDonut total={total}  clickedlink={clickedlink} />
-            <SummittedDataDonut total={total}  summitdata={summitdata} />
+            <EmailOpenDonut total={total} emailopened={emailopened} />
+            <ClickedLinkDonut total={total} clickedlink={clickedlink} />
+            <SummittedDataDonut total={total} summitdata={summitdata} />
           </div>
           <div style={{ paddingTop: "10px", paddingBottom: "10px" }}>
             <Typography.Title level={1}>Details</Typography.Title>
           </div>
           <div style={{ marginTop: "10px" }}>
-            <EnhancedTable data={target || []}/>
+            <EnhancedTable data={target || []} />
           </div>
         </Card>
       </UDashboardLayout>

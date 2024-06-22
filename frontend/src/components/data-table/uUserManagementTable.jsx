@@ -238,7 +238,6 @@ export default function EnhancedTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setisModalOpen] = useState(false);
 
-
   // Alert
   const [show, setShow] = useState(false); //Alerts
   const [alertSeverity, setAlertSeverity] = useState("error");
@@ -247,9 +246,8 @@ export default function EnhancedTable() {
   // require
   const [emailTouched, setEmailTouched] = useState(false);
 
-  
   const [rows, setUsersData] = useState([]);
-  
+
   const [selectedID, setSelectedID] = useState(null);
   const [formData, setFormData] = useState({
     email: "",
@@ -257,21 +255,18 @@ export default function EnhancedTable() {
     new_password: "",
     confirm_password: "",
   });
-  
-  const showEmailError = emailTouched && !formData.email;
-  
 
+  const showEmailError = emailTouched && !formData.email;
 
   const axiosPrivate = useAxiosInterceptor();
-  
+
   useEffect(() => {
     getData();
   }, []);
-  
+
   const access_token = localStorage.getItem("access_token") || " ";
   const decodedToken = jwtDecode(access_token);
   const user_id = decodedToken.user_id;
-
 
   const getData = async () => {
     try {
@@ -291,7 +286,7 @@ export default function EnhancedTable() {
           user.user_id
         )
       );
-      // console.log(formattedData)
+
       setUsersData(formattedData);
     } catch (error) {
       console.log(error);
@@ -397,7 +392,6 @@ export default function EnhancedTable() {
     }
   };
 
-
   return (
     <Box sx={{ width: "100%" }}>
       <Paper sx={{ width: "100%", mb: 2 }}>
@@ -494,7 +488,6 @@ export default function EnhancedTable() {
             </TableBody>
           </Table>
         </TableContainer>
-
 
         <TablePagination
           rowsPerPageOptions={[]}
@@ -598,7 +591,6 @@ export default function EnhancedTable() {
                 type="password"
                 autoComplete="current-password"
                 value={formData.old_password}
-
                 onChange={(e) =>
                   setFormData({ ...formData, old_password: e.target.value })
                 }

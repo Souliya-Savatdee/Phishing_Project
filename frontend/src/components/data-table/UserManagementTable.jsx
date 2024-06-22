@@ -255,24 +255,23 @@ export default function EnhancedTable() {
   // require
   const [emailTouched, setEmailTouched] = useState(false);
 
-  
   const [rows, setUsersData] = useState([]);
-  
+
   const [selectedID, setSelectedID] = useState(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirm_password: "",
   });
-  
+
   const showEmailError = emailTouched && !formData.email;
-  
+
   const axiosPrivate = useAxiosInterceptor();
-  
+
   useEffect(() => {
     getData();
   }, []);
-  
+
   const access_token = localStorage.getItem("access_token") || " ";
 
   const getData = async () => {
@@ -293,7 +292,6 @@ export default function EnhancedTable() {
           user.user_id
         )
       );
-      // console.log(formattedData)
       setUsersData(formattedData);
     } catch (error) {
       console.log(error);

@@ -344,7 +344,6 @@ export default function EnhancedTable() {
           campaign.cam_id
         )
       );
-      console.log(formattedData);
       setUsersData(formattedData);
     } catch (error) {
       console.log(error);
@@ -397,7 +396,7 @@ export default function EnhancedTable() {
 
   //View Result
   const handleViewResult = (cam_id) => {
-    console.log(cam_id)
+
     navigate(`/campaigns/result/${cam_id}`);
   };
 

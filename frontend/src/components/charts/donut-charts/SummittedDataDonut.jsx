@@ -12,7 +12,7 @@ const SummittedDataDonut = ({ total, submitted }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 100); 
+    }, 300); 
     return () => clearTimeout(timer);
   }, []);
 

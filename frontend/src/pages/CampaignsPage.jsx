@@ -27,6 +27,7 @@ import dayjs from "dayjs";
 export default function CampaignsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const [name, setName] = useState("");
   const [endDate, setEndDate] = useState(null);
@@ -134,15 +135,6 @@ export default function CampaignsPage() {
   };
 
   const handleCancel = () => {
-    // setFormData({
-    //   cam_name: "",
-    //   user_id: "",
-    //   group_id: "",
-    //   page_id: "",
-    //   temp_id: "",
-    //   smtp_id: "",
-    //   completed_date: "",
-    // });
     setEndDate(null);
 
     setNameTouched(false);
@@ -156,8 +148,9 @@ export default function CampaignsPage() {
   };
 
   //Create Campaign Page
-  const handleLauch = async (event) => {
+  const handleLaunch = async (event) => {
     event.preventDefault();
+    setLoading(true);
     if (
       !formData.cam_name ||
       !formData.user_id ||
@@ -229,9 +222,11 @@ export default function CampaignsPage() {
       setServerResponse(error.response.data.msg);
       console.log(serverResponse);
       setShow(true);
-    }
+    }finally {
+      setLoading(false);
+    };
   };
-  
+
   const handleRefresh = () => {
     setRefreshing(true);
     navigate(`/refresh`);
@@ -323,19 +318,21 @@ export default function CampaignsPage() {
             <>
               <CancelBtn />
               <Button
-                icon={
-                  <RocketLaunchIcon style={{ width: "14px", height: "14px" }} />
-                }
-                style={{
-                  backgroundColor: "rgba(67,190,126,255)",
-                  color: "#FFF",
-                  fontSize: "13px",
-                  height: "36px",
-                }}
-                onClick={handleLauch}
-              >
-                LAUNCH
-              </Button>
+              icon={<RocketLaunchIcon
+                style={{ width: "14px", height: "14px" }}
+              />}
+              style={{
+                backgroundColor: "rgba(67,190,126,255)",
+                color: "#FFF",
+                fontSize: "13px",
+                height: "36px",
+              }}
+              onClick={handleLaunch}
+              loading={loading}
+
+            >
+              LAUNCH
+            </Button>
             </>
           )}
         >

@@ -35,7 +35,16 @@ import { useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import useAxiosInterceptor from "@/middleware/interceptors";
 
-function createData(id, name, created_date, email, drafts, cursor, alert,result_id) {
+function createData(
+  id,
+  name,
+  created_date,
+  email,
+  drafts,
+  cursor,
+  alert,
+  result_id
+) {
   return {
     id,
     name,
@@ -45,7 +54,6 @@ function createData(id, name, created_date, email, drafts, cursor, alert,result_
     cursor,
     alert,
     result_id,
-    
   };
 }
 function getColorForRow(row, columnId) {
@@ -324,7 +332,6 @@ export default function EnhancedTable() {
     setSelected([]);
   };
 
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -385,17 +392,13 @@ export default function EnhancedTable() {
     }
   };
 
-
   const handleDelete = async () => {
     try {
-      const response = await axiosPrivate.delete(
-        `campaign/${selectedID}`,
-        {
-          headers: {
-            Authorization: `Bearer ${JSON.parse(access_token)}`,
-          },
-        }
-      );
+      const response = await axiosPrivate.delete(`campaign/${selectedID}`, {
+        headers: {
+          Authorization: `Bearer ${JSON.parse(access_token)}`,
+        },
+      });
       if (response) {
         console.log("Delete successful!");
         setIsModalOpen(false);
@@ -468,7 +471,6 @@ export default function EnhancedTable() {
                     <TableCell
                       align="left"
                       style={{ color: getColorForRow(row, "cursor") }}
-                      
                     >
                       {row.cursor}
                     </TableCell>

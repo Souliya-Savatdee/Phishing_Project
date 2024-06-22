@@ -28,13 +28,9 @@ import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 
-// Ant Design components
 import { Button, Modal, Divider } from "antd";
-
-// Custom hooks
 import useAxiosInterceptor from "@/middleware/interceptors";
 
-// Prop types
 import PropTypes from "prop-types";
 function createData(
   id,

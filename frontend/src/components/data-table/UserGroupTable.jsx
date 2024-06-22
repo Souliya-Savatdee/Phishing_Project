@@ -340,7 +340,6 @@ export default function EnhancedTable() {
           group_target.group_id
         )
       );
-      console.log(formattedData);
       setUsersData(formattedData);
     } catch (error) {
       console.error("Error fetching email template data:", error);
@@ -349,7 +348,6 @@ export default function EnhancedTable() {
 
   const editAction = (row) => {
     setSelectedID(row.group_id);
-    console.log(row);
     setName(row.name);
     row.target_list.forEach((target) => {
       const newTarget = {
@@ -368,7 +366,7 @@ export default function EnhancedTable() {
       setTarget((prevUsers) => [...prevUsers, newTarget]);
     });
 
-    console.log(target);
+
     showModal();
   };
 
@@ -418,7 +416,6 @@ export default function EnhancedTable() {
     };
 
     setTarget((prevUsers) => [...prevUsers, newTargetAdd]);
-    console.log(target);
     setFirstname("");
     setLastname("");
     setEmail("");
@@ -487,7 +484,6 @@ export default function EnhancedTable() {
 
   // DELETE
   const showModal_Delete = (group_id) => {
-    console.log(group_id);
     setSelectedID(group_id);
     setModalOpen_Delete(true);
   };

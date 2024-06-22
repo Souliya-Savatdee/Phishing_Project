@@ -1,18 +1,14 @@
-from datetime import datetime
 from flask import request, jsonify, make_response, send_file
-from flask_restx import Resource, fields, Namespace
+from flask_restx import Resource, Namespace
 from flask_jwt_extended import get_jwt, jwt_required, verify_jwt_in_request
 from uuid import UUID
 
-from api.models import db, Group, User, Smtp, Template, Page, Campaign, Result
+from api.models import db, Campaign, Result
 from utils.file_path_excel import file_path_excel, read_excel_to_json
 from constans.http_status_code import (
     HTTP_200_OK,
-    HTTP_201_CREATED,
-    HTTP_400_BAD_REQUEST,
     HTTP_403_FORBIDDEN,
     HTTP_404_NOT_FOUND,
-    HTTP_409_CONFLICT,
 )
 
 result_campaign_ns = Namespace("result", description="Result_campaign operations")
@@ -64,6 +60,7 @@ class ResultCampaign(Resource):
             {
                 "cam_name": db_campaign.cam_name,
                 "user_belong": db_campaign.user.email,
+                "modified_date": db_result.modified_date,
                 "status": {
                     "total": status_list[0],
                     "send_mail": status_list[1],

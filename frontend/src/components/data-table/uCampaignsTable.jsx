@@ -109,7 +109,6 @@ function getButtonForRow(row) {
   }
 }
 
-
 function descendingComparator(a, b, orderBy) {
   if (b[orderBy] < a[orderBy]) {
     return -1;
@@ -394,8 +393,6 @@ export default function EnhancedTable() {
     filteredRows,
     getComparator(order, orderBy)
   ).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-
 
   return (
     <Box sx={{ width: "100%" }}>

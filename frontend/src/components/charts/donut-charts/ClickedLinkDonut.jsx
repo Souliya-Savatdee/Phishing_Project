@@ -11,7 +11,7 @@ const ClickedLinkDonut = ({ total, clickedlink } ) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 100); 
+    }, 300); 
     return () => clearTimeout(timer);
   }, []);
 

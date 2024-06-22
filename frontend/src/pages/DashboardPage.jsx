@@ -18,7 +18,6 @@ export default function DashboardPage() {
     navigate("/campaigns");
   };
 
-
   const axiosPrivate = useAxiosInterceptor();
   const access_token = localStorage.getItem("access_token") || " ";
 
@@ -43,21 +42,20 @@ export default function DashboardPage() {
           completed_date: result.completed_date,
           total: result.status.total,
           success: result.status.submit,
-
-          // sent: result.status.send_mail,
-          // open: result.status.open,
-          // click: result.status.click,
-          // submit: result.status.submit,
         }));
 
-        const totalSum = campaignData.reduce((acc, curr) => acc + curr.total, 0);
-        const successSum = campaignData.reduce((acc, curr) => acc + curr.success, 0);
-
+        const totalSum = campaignData.reduce(
+          (acc, curr) => acc + curr.total,
+          0
+        );
+        const successSum = campaignData.reduce(
+          (acc, curr) => acc + curr.success,
+          0
+        );
 
         setResultData(campaignData);
         setTotalSum(totalSum);
         setSuccessSum(successSum);
-        
       } else {
         console.log("No result found");
       }
@@ -73,7 +71,7 @@ export default function DashboardPage() {
           title={
             <Typography.Title level={1}>
               Dashboard
-              <Divider style={{marginBottom:"0px"}} />
+              <Divider style={{ marginBottom: "0px" }} />
             </Typography.Title>
           }
           bordered={false}
@@ -84,8 +82,8 @@ export default function DashboardPage() {
           }}
         >
           <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <Linecharts resultData={resultData}/>
-            <Donutcharts totalSum={totalSum} successSum = {successSum}/>
+            <Linecharts resultData={resultData} />
+            <Donutcharts totalSum={totalSum} successSum={successSum} />
           </div>
           <div style={{ paddingBottom: "24px" }}>
             <Typography.Title level={1}>Recent Campaigns</Typography.Title>

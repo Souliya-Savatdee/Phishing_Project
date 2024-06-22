@@ -22,7 +22,7 @@ export default function LoginPage() {
   //context
   const { login } = useAuth();
 
-  const [loadings, setLoadings] = useState(false);
+  const [loading, setLoadings] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,9 +36,6 @@ export default function LoginPage() {
   const showEmailError = emailTouched && !email;
 
   const navigate = useNavigate();
-  const location = useLocation();
-  // const admin_from = location.state?.from?.pathname || "/dashboard";
-  // const user_from = location.state?.from?.pathname || "/u/";
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -159,13 +156,18 @@ export default function LoginPage() {
             />
           </div>
           <LoadingButton
-            className="login-button"
-            onClick={handleSubmit}
-            loading={loadings}
-            // variant="outlined"
 
+            onClick={handleSubmit}
+            loading={loading}
+            variant="outlined"
+            className="login-button"
+            sx={{
+              "& .MuiLoadingButton-loadingIndicator": {
+                color: "white", 
+              },
+            }}
           >
-            SIGN IN
+            <span className={loading ? "hidden-text" : ""}>SIGN IN</span>
           </LoadingButton>
         </div>
       </form>

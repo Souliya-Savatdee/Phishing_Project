@@ -303,7 +303,6 @@ export default function EnhancedTable() {
           email_template.id
         )
       );
-      console.log(formattedData);
       setUsersData(formattedData);
     } catch (error) {
       console.error("Error fetching email template data:", error);
@@ -401,7 +400,6 @@ export default function EnhancedTable() {
 
   const editAction = (row) => {
     setSelectedID(row.temp_id);
-    console.log(row);
     setFormData({
       temp_name: row.name,
       subject: row.subject,
@@ -453,7 +451,6 @@ export default function EnhancedTable() {
       setShow(true);
     }
 
-    console.log(formData);
   };
 
   const handleFormChange = (event) => {
@@ -491,7 +488,7 @@ export default function EnhancedTable() {
       setServerResponse("This Email Template is working, can not be deleted");
       setShow(true);
     }
-    console.log(selectedID);
+
   };
 
   return (
