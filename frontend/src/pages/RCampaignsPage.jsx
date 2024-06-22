@@ -53,10 +53,13 @@ export default function RCampaignsPage() {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    getDataTargetResult();
+    navigate(`/refresh`);
+
     setTimeout(() => {
+      navigate(`/campaigns/result/${cam_id}`);
+
       setRefreshing(false);
-    }, 500);
+    },);
   };
 
   const axiosPrivate = useAxiosInterceptor();

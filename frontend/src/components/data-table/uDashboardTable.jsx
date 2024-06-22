@@ -295,7 +295,6 @@ export default function EnhancedTable() {
   const navigate = useNavigate();
 
   const handleViewResult = (result_id) => {
-    console.log(result_id);
     navigate(`/u/campaigns/result/${result_id}`);
   };
 

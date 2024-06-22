@@ -311,6 +311,7 @@ class DashboardCampaign(Resource):
                         },
                         "modified_date": modified_date,
                         "create_date": campaign.created_date.strftime("%Y-%m-%d"),
+                        "full_create_date_time": campaign.created_date,
                         "completed_date": campaign.completed_date.strftime("%Y-%m-%d"),
                         
                     }
@@ -351,6 +352,7 @@ class DashboardCampaign(Resource):
                         },
                         "modified_date": modified_date,
                         "create_date": campaign.created_date.strftime("%Y-%m-%d"),
+                        "full_create_date_time": campaign.created_date,
                         "completed_date": campaign.completed_date.strftime("%Y-%m-%d"),
                         
                     }

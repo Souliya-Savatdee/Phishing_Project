@@ -303,13 +303,11 @@ export default function EnhancedTable() {
   const navigate = useNavigate();
 
   const handleViewResult = (result_id) => {
-    console.log(result_id);
     navigate(`/campaigns/result/${result_id}`);
   };
 
   const showModal_Delete = (result_id) => {
     setSelectedID(result_id);
-    console.log(result_id);
     setIsModalOpen(true);
   };
 

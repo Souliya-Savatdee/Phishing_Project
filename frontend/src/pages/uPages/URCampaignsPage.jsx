@@ -47,10 +47,13 @@ export default function URCampaignsPage() {
 
   const handleRefresh = () => {
     setRefreshing(true);
-    getDataTargetResult();
+    navigate(`/u/refresh`);
+
     setTimeout(() => {
+      navigate(`/u/campaigns/result/${cam_id}`);
+
       setRefreshing(false);
-    }, 500);
+    },);
   };
 
   const axiosPrivate = useAxiosInterceptor();

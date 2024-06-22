@@ -36,8 +36,7 @@ export default function UDashboardPage() {
         const campaignData = data.result.map((result) => ({
           cam_id: result.cam_id,
           cam_name: result.cam_name,
-          create_date: result.create_date,
-          completed_date: result.completed_date,
+          full_create_date_time: result.full_create_date_time,
           total: result.status.total,
           success: result.status.submit,
         }));
