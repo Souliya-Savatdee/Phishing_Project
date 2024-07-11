@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import request, jsonify, make_response
 from flask_restx import Resource, fields, Namespace
 from flask_jwt_extended import get_jwt, jwt_required
-from utils.text_to_html import text_to_html
+from utils.convert_text import text_to_html, html_to_text
 
 from constans.http_status_code import (
     HTTP_200_OK,
@@ -115,13 +115,13 @@ class TemplateManagments(Resource):
                 modified_date = templates.modified_date.strftime("%Y-%m-%d")
             else:
                 modified_date = None
-
+            text = html_to_text(templates.temp_text) if templates.temp_text else ""
             data.append(
                 {
                     "id": templates.temp_id,
                     "temp_name": templates.temp_name,
                     "subject": templates.temp_subject,
-                    "text_data": templates.temp_text,
+                    "text_data": text,
                     "html_data": templates.temp_html,
                     "modified_date": modified_date,
                 }
@@ -220,9 +220,13 @@ class TemplateManagment(Resource):
 
         if temp_text is not None and temp_text.strip() == "":
             temp_text = None
+            
+        if temp_text is not None:
+            temp_text = text_to_html(temp_text)
 
         if temp_html is not None and temp_html.strip() == "":
             temp_html = None
+            
 
         db_temp = (
             db.session.query(Template)

@@ -253,7 +253,7 @@ export default function EnhancedTable() {
   const [activeButton, setActiveButton] = useState("");
   const [htmlButtonClicked, setHtmlButtonClicked] = useState(false);
 
-  const iframeRef = useRef(null); 
+  const iframeRef = useRef(null);
 
   //Alert
   const [show, setShow] = useState(false);
@@ -351,7 +351,6 @@ export default function EnhancedTable() {
     getComparator(order, orderBy)
   ).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-
   const handleHtmlButtonClick = () => {
     setInputType("html");
     setActiveButton("html");
@@ -364,30 +363,28 @@ export default function EnhancedTable() {
     const iframe = iframeRef.current;
 
     if (iframe) {
-      const fullPageButton = `
-      <button id="fullPageBtn" style="position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 5px 10px; font-size: 12px; background-color: #d5d5d5; color: white; border: none; border-radius: 3px; cursor: pointer;">
-        Full Page
-      </button>
-      <script>
-        document.getElementById('fullPageBtn').addEventListener('click', function() {
-          const iframe = window.frameElement;
-          if (iframe.requestFullscreen) {
-            iframe.requestFullscreen();
-          } else if (iframe.mozRequestFullScreen) { /* Firefox */
-            iframe.mozRequestFullScreen();
-          } else if (iframe.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
-            iframe.webkitRequestFullscreen();
-          } else if (iframe.msRequestFullscreen) { /* IE/Edge */
-            iframe.msRequestFullscreen();
-          }
-        });
-      </script>
-    `;
-
-      iframe.srcdoc = formData.html_data + fullPageButton;
+      iframe.srcdoc = formData.html_data;
     }
   };
 
+  const handleFullscreen = () => {
+    const iframe = iframeRef.current;
+
+    if (iframe) {
+      if (iframe.requestFullscreen) {
+        iframe.requestFullscreen();
+      } else if (iframe.mozRequestFullScreen) {
+        /* Firefox */
+        iframe.mozRequestFullScreen();
+      } else if (iframe.webkitRequestFullscreen) {
+        /* Chrome, Safari and Opera */
+        iframe.webkitRequestFullscreen();
+      } else if (iframe.msRequestFullscreen) {
+        /* IE/Edge */
+        iframe.msRequestFullscreen();
+      }
+    }
+  };
 
   // EDIT
   const showModal = () => {
@@ -427,11 +424,15 @@ export default function EnhancedTable() {
         setAlertSeverity("success");
         setServerResponse(response.data.msg);
         setShow(true);
+
         setFormData({
-          email: "",
-          password: "",
-          confirm_password: "",
+          page_name: "",
+          url: "",
+          redirectURL: "",
+          html_data: "",
         });
+
+        setPageNameTouched(false);
 
         setTimeout(() => {
           setShow(false);
@@ -446,16 +447,12 @@ export default function EnhancedTable() {
       console.log(serverResponse);
       setShow(true);
     }
-    console.log(formData);
+    // console.log(formData);
   };
 
   const handleFormChange = (event) => {
     const { name, value } = event.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
-  };
-
-  const handleHtmlChange = (content) => {
-    setFormData((prevData) => ({ ...prevData, html_data: content }));
   };
 
   // DELETE
@@ -773,6 +770,24 @@ export default function EnhancedTable() {
                     No HTML content to display
                   </div>
                 )}
+                <Button_m
+                  variant="contained"
+                  color="primary"
+                  size="small"
+                  onClick={handleFullscreen}
+                  style={{
+                    position: "absolute",
+                    top: "275px",
+                    right: "25px",
+                    zIndex: 1000,
+                    backgroundColor: "transparent",
+                    color: '#1976d2',
+                    padding: "5px 10px",
+                    fontSize: "12px",
+                  }}
+                >
+                  Fullscreen
+                </Button_m>
               </div>
             )}
           </Box>

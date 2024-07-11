@@ -1,7 +1,7 @@
 import DashboardLayout from "@/layouts/DashboardLayout";
 import React, { useState } from "react";
-import { Button, Typography, Card, Divider, Modal } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { Upload, Button, Typography, Card, Divider, Modal } from "antd";
+import { PlusOutlined, UploadOutlined } from "@ant-design/icons";
 import {
   Box,
   TextField,
@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
-
+import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom";
 
 import EnhancedTable from "@/components/data-table/UserGroupTable";
@@ -95,7 +95,7 @@ export default function UserAndGroupPage() {
     };
 
     setTarget((prevUsers) => [...prevUsers, newTarget]);
-    console.log(target);
+
     setFirstname("");
     setLastname("");
     setEmail("");
@@ -128,8 +128,6 @@ export default function UserAndGroupPage() {
 
   //Create Group Target Profile
   const SendData = async (formData) => {
-    console.log(formData);
-
     try {
       const response = await axiosPrivate.post("group/", formData, {
         headers: {
@@ -158,7 +156,6 @@ export default function UserAndGroupPage() {
       setServerResponse(error.response.data.msg);
       console.log(serverResponse);
       setShow(true);
-      console.log(error);
     }
   };
 
@@ -172,6 +169,82 @@ export default function UserAndGroupPage() {
 
       setRefreshing(false);
     });
+  };
+
+  const handleFileUpload = (file) => {
+    setTarget([]);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const binaryStr = e.target.result;
+      const workbook = XLSX.read(binaryStr, { type: "binary" });
+      const sheetName = workbook.SheetNames[0];
+      const sheet = workbook.Sheets[sheetName];
+      const parsedData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+      // Extract headers
+      const headers = parsedData[0];
+      const firstNameIndex = headers.indexOf("Firstname");
+      const lastNameIndex = headers.indexOf("Lastname");
+      const emailIndex = headers.indexOf("Email");
+
+      // Validate headers
+      if (firstNameIndex === -1 || emailIndex === -1) {
+        setAlertSeverity("error");
+        setServerResponse(
+          'Invalid file format. Make sure the file contains "Firstname" and "Email" columns.'
+        );
+        setShow(true);
+
+        return;
+      }
+
+      // Extract and transform data
+      try {
+        const transformedData = parsedData.slice(1).map((row, rowIndex) => {
+          const firstName = row[firstNameIndex];
+          const lastName = row[lastNameIndex] || null;
+          const email = row[emailIndex];
+
+          if (!firstName) {
+            setAlertSeverity("error");
+            setServerResponse(`Invalid Firstname at row ${rowIndex + 2}`);
+            setShow(true);
+            return;
+          }
+          if (!email || !validateEmail(email.trim())) {
+            setAlertSeverity("error");
+            setServerResponse(`Invalid Email at row ${rowIndex + 2}`);
+            setShow(true);
+            return;
+          }
+
+          return {
+            firstName,
+            lastName,
+            email,
+          };
+        });
+
+        const newTargets = transformedData.map((item, index) => ({
+          id: target.length + index + 1,
+          first_name: item.firstName,
+          last_name: item.lastName,
+          email: item.email,
+          actions: {
+            deleteAction: () => handleDelete(target.length + index + 1),
+          },
+        }));
+
+        setTarget((prevTargets) => [...prevTargets, ...newTargets]);
+
+        setShow(false);
+      } catch (err) {
+        console.error(err.message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    return false; // Prevent auto upload
   };
 
   return (
@@ -354,6 +427,25 @@ export default function UserAndGroupPage() {
               >
                 Add Item
               </Button>
+
+              <Upload
+                accept=".xlsx"
+                beforeUpload={handleFileUpload}
+                showUploadList={false}
+              >
+                <Button
+                  style={{
+                    fontSize: "14px",
+                    width: 130,
+                    height: 40,
+                    backgroundColor: "#fb8c00",
+                    color: "#FFF",
+                  }}
+                  icon={<UploadOutlined />}
+                >
+                  Import xlsx
+                </Button>
+              </Upload>
             </div>
             <div style={{ marginTop: "10px" }}>
               <EnhancedTable_m data={target || []} />

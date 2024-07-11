@@ -16,8 +16,8 @@ import useAxiosInterceptor from "@/middleware/interceptors";
 
 export default function URCampaignsPage() {
   const [refreshing, setRefreshing] = useState(false);
+  const [isFinish, setIsFinished] = useState("");
 
-  const [userBelong, setUserBelong] = useState("");
   const [target, setTarget] = useState([]);
   const [cam_name, setCamName] = useState("");
   const navigate = useNavigate();
@@ -53,7 +53,7 @@ export default function URCampaignsPage() {
       navigate(`/u/campaigns/result/${cam_id}`);
 
       setRefreshing(false);
-    },);
+    });
   };
 
   const axiosPrivate = useAxiosInterceptor();
@@ -74,8 +74,15 @@ export default function URCampaignsPage() {
 
       const data = response.data;
       const user = data.camData[0].user_belong;
-      setUserBelong(`- (${user})`);
 
+      if (
+        data.camData[0].modified_date != null &&
+        data.camData[0].modified_date !== ""
+      ) {
+        setIsFinished("- (Finished Campaign)");
+      } else {
+        setIsFinished("");
+      }
       const target_list = data.targetData.map((target) => ({
         id: target.Amount,
         firstname: target.Firstname,
@@ -98,6 +105,7 @@ export default function URCampaignsPage() {
       setEmailopened(cam_Data.status.open);
       setClickedlink(cam_Data.status.click);
       setSummitdata(cam_Data.status.submit);
+      console.log(summitdata);
     } catch (error) {
       if (error.response.status === 404) {
         console.log(error.response.data.msg);
@@ -211,7 +219,7 @@ export default function URCampaignsPage() {
               }}
               onClick={handleExportXLSX}
             >
-              Export As CSV
+              Export As XLSX
             </Button>
             <Button
               icon={<AutorenewIcon fontSize="small" />}
@@ -234,17 +242,17 @@ export default function URCampaignsPage() {
           <Divider style={{ marginBottom: "0px" }} />
 
           <Typography.Title level={1}>
-            Sales Branch
+            {`${cam_name} ${isFinish}`}
             <Divider style={{ marginBottom: "0px" }} />
           </Typography.Title>
           {/* <div style={{ display: "flex", justifyContent: "space-between" }}>
             <Linecharts />
           </div> */}
-          <div style={{ display: "flex" }}>
+          <div className="dashboard-container">
             <EmailSentDonut total={total} emailsent={emailsent} />
             <EmailOpenDonut total={total} emailopened={emailopened} />
             <ClickedLinkDonut total={total} clickedlink={clickedlink} />
-            <SummittedDataDonut total={total} summitdata={summitdata} />
+            <SummittedDataDonut total={total} submitted={summitdata} />
           </div>
           <div style={{ paddingTop: "10px", paddingBottom: "10px" }}>
             <Typography.Title level={1}>Details</Typography.Title>

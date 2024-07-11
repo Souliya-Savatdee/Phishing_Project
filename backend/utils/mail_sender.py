@@ -39,7 +39,7 @@ def verify_email(email):
 
     headers = {
         "accept": "application/json",
-        "apiKey": "d8132111-c22c-4b6b-8ab1-2d85c8c7e3ca"
+        "apiKey": "d8132111-c22c-4b6b-8ab1-2d85c8c7e3c"
     }
 
     try:
@@ -95,9 +95,6 @@ def send_emails(subject, sender_email, sender_password, SMTP_SERVER, SMTP_PORT, 
 
     # email_template = unescape_html(email_template)
 
-    
-
-    
     domain_mx_records = get_domain_mx_records(target_list)
     server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
     server.starttls()
@@ -107,6 +104,7 @@ def send_emails(subject, sender_email, sender_password, SMTP_SERVER, SMTP_PORT, 
         for recipient in target_list:
             receiver_email = recipient['email']
             user_id = recipient['user_id']
+
 
             db_result = get_result_by_target_id(user_id)
             

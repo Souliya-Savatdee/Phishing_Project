@@ -49,7 +49,6 @@ export default function EmailTemplatesPage() {
   });
   const navigate = useNavigate();
 
-
   const showTemplateNameError = templateNameTouched && !formData.temp_name;
   const showSubjectError = subjectTouched && !formData.subject;
 
@@ -86,27 +85,26 @@ export default function EmailTemplatesPage() {
     const iframe = iframeRef.current;
 
     if (iframe) {
-      const fullPageButton = `
-      <button id="fullPageBtn" style="position: fixed; top: 10px; right: 10px; z-index: 1000; padding: 5px 10px; font-size: 12px; background-color: #d5d5d5; color: white; border: none; border-radius: 3px; cursor: pointer;">
-        Full Page
-      </button>
-      <script>
-        document.getElementById('fullPageBtn').addEventListener('click', function() {
-          const iframe = window.frameElement;
-          if (iframe.requestFullscreen) {
-            iframe.requestFullscreen();
-          } else if (iframe.mozRequestFullScreen) { /* Firefox */
-            iframe.mozRequestFullScreen();
-          } else if (iframe.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
-            iframe.webkitRequestFullscreen();
-          } else if (iframe.msRequestFullscreen) { /* IE/Edge */
-            iframe.msRequestFullscreen();
-          }
-        });
-      </script>
-    `;
+      iframe.srcdoc = formData.html_data;
+    }
+  };
 
-      iframe.srcdoc = formData.html_data + fullPageButton;
+  const handleFullscreen = () => {
+    const iframe = iframeRef.current;
+
+    if (iframe) {
+      if (iframe.requestFullscreen) {
+        iframe.requestFullscreen();
+      } else if (iframe.mozRequestFullScreen) {
+        /* Firefox */
+        iframe.mozRequestFullScreen();
+      } else if (iframe.webkitRequestFullscreen) {
+        /* Chrome, Safari and Opera */
+        iframe.webkitRequestFullscreen();
+      } else if (iframe.msRequestFullscreen) {
+        /* IE/Edge */
+        iframe.msRequestFullscreen();
+      }
     }
   };
 
@@ -368,6 +366,7 @@ export default function EmailTemplatesPage() {
                   // rowsMax="25"
                   variant="outlined"
                   fullWidth={true}
+                  placeholder='Have to provide "Click Here" in the Text for direct to the landing page'
                 />
               )}
               {inputType === "html" && (
@@ -416,6 +415,24 @@ export default function EmailTemplatesPage() {
                       No HTML content to display
                     </div>
                   )}
+                  <Button_m
+                    variant="contained"
+                    color="primary"
+                    size="small"
+                    onClick={handleFullscreen}
+                    style={{
+                      position: "absolute",
+                      top: "267px",
+                      right: "25px",
+                      zIndex: 1000,
+                      backgroundColor: "transparent",
+                      color: "#1976d2",
+                      padding: "5px 10px",
+                      fontSize: "12px",
+                    }}
+                  >
+                    Fullscreen
+                  </Button_m>
                 </div>
               )}
             </Box>
